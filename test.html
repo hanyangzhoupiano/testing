@@ -3142,7 +3142,7 @@
                                 
                                 for (let j = 0; j < enemies_to_spawn.length; j++) {
                                     let enemy = enemies_to_spawn[j];
-                                    enemies.push({...enemy_types[enemy], id: enemy.id})
+                                    enemies.push({...enemy_types[enemy.type], id: enemy.id})
                                 }
                                 
                                 campaign_level = i + 1;
