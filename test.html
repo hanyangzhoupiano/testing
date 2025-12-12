@@ -1,0 +1,3483 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>My Homepage</title>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto" rel="stylesheet">
+        <link rel="stylesheet" href="styles.css">
+        <style>
+            .hoverable:hover {
+                transform: translate(0, 0);
+            }
+        </style>
+        <script>(() => {
+    // navigation
+                
+    let nav_open = false;
+    
+    toggle = () => {
+        nav_open = nav_open ? false : true;
+        document.querySelectorAll(".sidenav").forEach((nav) => {
+            nav.style.width = nav_open ? "35%" : "0%";
+        });
+    };
+    
+    // extend Element and NodeList to include shortcuts
+    
+    Element.prototype.on = NodeList.prototype.on = function(events, callback) {
+        if (this.forEach) this.forEach((e) => {events.split(" ").forEach((event) => {e.addEventListener(event, callback)})}); else events.split(" ").forEach((event) => {this.addEventListener(event, callback)});
+        return this
+    }, Element.prototype.css = NodeList.prototype.css = function(attribute, value) {
+        if (this.forEach) this.forEach((e) => {e.style[attribute] = value}); else this.style[attribute] = value;
+        return this
+    }, Element.prototype.html = NodeList.prototype.html = function(content) {
+        if (this.forEach) this.forEach((e) => {e.innerHTML = content}); else this.innerHTML = content;
+        return this
+    }, Element.prototype.text = NodeList.prototype.text = function(content) {
+        if (this.forEach) this.forEach((e) => {e.textContent = content}); else this.textContent = content;
+        return this
+    }, Element.prototype.attr = NodeList.prototype.attr = function(attribute, value) {
+        if (value !== undefined) {
+            if (this.forEach) this.forEach((e) => {e.setAttribute(attribute, value)}); else this.setAttribute(attribute, value);
+        } else {
+            if (this.forEach) return Array.from(this).map((e) => e.getAttribute(attribute));
+            return this.getAttribute(attribute);
+        };
+        return this
+    }, Element.prototype.addClass = NodeList.prototype.addClass = function(className) {
+        if (this.forEach) this.forEach((e) => {e.classList.add(className)}); else this.classList.add(className);
+        return this
+    }, Element.prototype.removeClass = NodeList.prototype.removeClass = function(className) {
+        if (this.forEach) this.forEach((e) => {e.classList.remove(className)}); else this.classList.remove(className);
+        return this
+    }, Element.prototype.toggleClass = NodeList.prototype.toggleClass = function(className) {
+        if (this.forEach) this.forEach((e) => {e.classList.toggle(className)}); else this.classList.toggle(className);
+        return this
+    }, Element.prototype.$ = NodeList.prototype.$ = function(selector) {
+        if (this.forEach) {
+            let elements = [];
+            this.forEach(node => {
+                elements = elements.concat(Array.from(node.querySelectorAll(selector)));
+            });
+            return elements.length === 1 ? elements[0] : elements;
+        } else {
+            return this.querySelectorAll(selector).length === 1 ? this.querySelector(selector) : this.querySelectorAll(selector);
+        }
+    };
+    
+    // helper functions
+    
+    $ = (selector) => {
+        // return element or nodelist based on length
+        
+        return (document.querySelectorAll(selector).length == 1) ? (document.querySelectorAll(selector)[0] || document.querySelector(selector)) : document.querySelectorAll(selector);
+    };
+    
+    createElement = (type, options) => {
+        if (type) {
+            try {
+                let element = document.createElement(type);
+                
+                if (options !== undefined) {
+                    // loop through options to set attributes of the element
+                    
+                    for (let [option, value] of Object.entries(options)) {
+                        if (option == "parent") {
+                            value.appendChild(element);
+                        } else if (option == "textContent") {
+                            element.textContent = value;
+                        } else if (option == "innerHTML") {
+                            element.innerHTML = value;
+                        } else {
+                            element.setAttribute(option, value);
+                        };
+                    };
+                }
+                
+                return element;
+            } catch (error) {
+                // prevent errors from crashing program and return undefined
+                
+                console.log("ERROR: " + error.message);
+                return undefined;
+            };
+        };
+    };
+    
+    // wait for content to load
+    
+    document.addEventListener("DOMContentLoaded", () => {
+        // handle hoverable elements
+        
+        const hoverable_elements = Array.isArray($(".hoverable")) 
+            ? [...$(".hoverable")] 
+            : [$(".hoverable")];
+    
+        hoverable_elements.forEach((element) => {
+            // get description element
+            
+            const hoverable_descriptions = Array.isArray(element.$(".hoverable_description"))
+                ? [...element.$(".hoverable_description")]
+                : [element.$(".hoverable_description")];
+    
+            element.on("mouseleave", () => {
+                // remove description when mouse leaves
+                
+                hoverable_descriptions.forEach(desc => desc.removeClass("visible"));
+            });
+            
+            // make the description dynamically adjust position to fit within the viewport
+
+            element.on("mouseover", () => {
+                hoverable_descriptions.forEach((hoverable_description) => {
+                    const element_rect = element.getBoundingClientRect();
+                    const description_rect = hoverable_description.getBoundingClientRect();
+                    const scrollX = window.scrollX;
+                    const scrollY = window.scrollY;
+                    
+                    const element_top = element_rect.top + scrollY;
+                    const element_left = element_rect.left + scrollX;
+                    
+                    let left_pos = Math.floor(element_left + element_rect.width / 2 - description_rect.width / 2 - 10);
+                    let top_pos = Math.floor(element_top + 20);
+                    
+                    if (left_pos + description_rect.width > scrollX + window.innerWidth) {
+                        left_pos = scrollX + window.innerWidth - description_rect.width - 5;
+                    } else if (left_pos < scrollX + 5) {
+                        left_pos = scrollX + 5;
+                    };
+                    
+                    if (top_pos + description_rect.height > scrollY + window.innerHeight) {
+                        top_pos = Math.floor(element_top - description_rect.height);
+                        hoverable_description.setAttribute("data-arrow-position", "top");
+                        hoverable_description.addClass("bottom");
+                    } else {
+                        hoverable_description.setAttribute("data-arrow-position", "bottom");
+                        hoverable_description.removeClass("bottom");
+                    };
+                    
+                    hoverable_description.style.left = `${left_pos}px`;
+                    hoverable_description.style.top = `${top_pos}px`;
+                    hoverable_description.addClass("visible");
+                });
+            });
+        });
+    });
+})();</script>
+        <script>
+            init = () => {
+                // constants
+           
+                const canvas = $("#canvas");
+                const score_tracker = $("#score_tracker");
+                const ctx = canvas.getContext("2d");
+                
+                const player_size = 12;
+                const player_size_width = canvas.width / player_size;
+                const player_size_height = canvas.height / player_size;
+                
+                // elements
+                
+                const level_text = $("#level_text");
+                const coin_text = $("#coin_text");
+                
+                // set score and statistics
+                
+                score_tracker.textContent = "Player 1: " + ((localStorage.getItem('score_1') == null) ? 0 : String(localStorage.getItem('score_1'))) + " - Player 2: " + ((localStorage.getItem('score_2') == null) ? 0 : String(localStorage.getItem('score_2')));
+                
+                if (!localStorage.getItem('campaign_level')) localStorage.setItem('campaign_level', 1);
+                if (!localStorage.getItem('level')) localStorage.setItem('level', 1);
+                if (!localStorage.getItem('experience')) localStorage.setItem('experience', 0);
+                if (!localStorage.getItem('coins')) localStorage.setItem('coins', 0);
+                if (!localStorage.getItem('unlocked_classes')) localStorage.setItem('unlocked_classes', 9);
+                if (!localStorage.getItem('upgrades')) localStorage.setItem('upgrades', "[]");
+                if (!localStorage.getItem('codes_redeemed')) localStorage.setItem('codes_redeemed', "[]");
+                
+                level_text.textContent = "Level " + localStorage.getItem('level') + " (" + localStorage.getItem('experience') + "/" + ((lvl) => 25 * lvl * lvl - 25 * lvl + 300)(localStorage.getItem('level')) + " Experience)";
+                coin_text.textContent = localStorage.getItem('coins') + " Coins";
+                
+                // configuration
+                
+                let configuration = {
+                    cooperative_mode: !1,
+                    ricochet_mode: !1,
+                    singleplayer_mode: !1,
+                    photosensitive_epilepsy_mode: !1
+                };
+                
+                // array to track keys pressed
+                
+                let keys_pressed = [];
+                
+                // main game variables
+                
+                let campaign_level = 0;
+                
+                let background_color = "#caf7b5";
+                let original_background_color = background_color;
+                
+                let player_1_x = (canvas.width - player_size_width) / 2;
+                let player_1_y = canvas.height - player_size_height - 20;
+                
+                let player_2_x = player_1_x;
+                let player_2_y = 20;
+                
+                let health_1 = 100;
+                let health_2 = 100;
+                
+                let max_health_1 = health_1;
+                let max_health_2 = health_2;
+                
+                let stamina_1 = 100;
+                let stamina_2 = 100;
+                
+                let max_stamina_1 = stamina_1;
+                let max_stamina_2 = stamina_2;
+                
+                let displayed_health_1 = health_1;
+                let displayed_health_2 = health_2;
+                
+                let displayed_stamina_1 = stamina_1;
+                let displayed_stamina_2 = stamina_2;
+                
+                let ghost_health_1 = displayed_health_1;
+                let ghost_health_2 = displayed_health_2;
+                
+                let damage_immune_1 = !1;
+                let damage_immune_2 = !1;
+                
+                let bullet_cooldown_1 = !1;
+                let bullet_cooldown_2 = !1;
+                
+                let block_1 = !1;
+                let block_2 = !1;
+                
+                let block_cooldown_1 = !1;
+                let block_cooldown_2 = !1;
+                
+                let regen_cooldown_1 = !1;
+                let regen_cooldown_2 = !1;
+                
+                let stamina_cooldown_1 = !1;
+                let stamina_cooldown_2 = !1;
+                
+                let player_class_1 = 1;
+                let player_class_2 = 1;
+                
+                let obstacles = [];
+                let collectibles = [];
+                let bullets = [];
+                let damages = [];
+                let combos = {player_1: {amount: 0, timer: 0}, player_2: {amount: 0, timer: 0}};
+                let effects = {explosions: [], particles: []};
+                let timers = [];
+                let enemies = [];
+                
+                // multipliers for each player
+                
+                let multipliers = [
+                    {plr: 1, data: {health: 0, bullet_amount: 0, damage: 1, speed: 1, fire_rate: 1, block: 1}},
+                    {plr: 2, data: {health: 0, bullet_amount: 0, damage: 1, speed: 1, fire_rate: 1, block: 1}}
+                ];
+                
+                // upgrade statistics
+                
+                let upgrades = [
+                    {name: "Health I", statistics: {health: 10, bullet_amount: 0, damage: 0, speed: 0, fire_rate: 0, block: 0}, cost: 50, id: 1},
+                    {name: "Health II", statistics: {health: 20, bullet_amount: 0, damage: 0, speed: 0, fire_rate: 0, block: 0}, cost: 80, id: 2},
+                    {name: "Health III", statistics: {health: 30, bullet_amount: 0, damage: 0, speed: 0, fire_rate: 0, block: 0}, cost: 110, id: 3},
+                    {name: "Health IV", statistics: {health: 40, bullet_amount: 0, damage: 0, speed: 0, fire_rate: 0, block: 0}, cost: 150, id: 4},
+                    {name: "Health V", statistics: {health: 50, bullet_amount: 0, damage: 0, speed: 0, fire_rate: 0, block: 0}, cost: 200, id: 5},
+                    {name: "Health VI", statistics: {health: 60, bullet_amount: 0, damage: 0, speed: 0, fire_rate: 0, block: 0}, cost: 300, id: 6},
+                    {name: "Health VII", statistics: {health: 70, bullet_amount: 0, damage: 0, speed: 0, fire_rate: 0, block: 0}, cost: 500, id: 7},
+                    {name: "Health VIII", statistics: {health: 80, bullet_amount: 0, damage: 0, speed: 0, fire_rate: 0, block: 0}, cost: 800, id: 8},
+                    {name: "Health IX", statistics: {health: 90, bullet_amount: 0, damage: 0, speed: 0, fire_rate: 0, block: 0}, cost: 1300, id: 9},
+                    {name: "Health X", statistics: {health: 100, bullet_amount: 0, damage: 0, speed: 0, fire_rate: 0, block: 0}, cost: 2000, id: 10}
+                ];
+                
+                // codes
+                
+                let codes = {
+                    "freecoins": {rewards: {coins: 10}, tags: []},
+                    "morefreecoins": {rewards: {coins: 20}, tags: []},
+                    "levelup": {rewards: {experience: 1400}, tags: []},
+                    "randomcode35": {rewards: {experience: 350, coins: 15}, tags: []},
+                    "secretcode85": {rewards: {experience: 850, coins: 50}, tags: []},
+                    "supersecretadmincode999": {rewards: {experience: 99999, coins: 9999}, tags: []}
+                };
+                
+                // stamina consumption
+                
+                let stamina_consumption = {
+                    dash: 15,
+                    shoot: 1
+                };
+                
+                // letter mapping
+                
+                let replacements = {
+                    a: ["jv", "zy", "yz"],
+                    b: "cu",
+                    c: "vt",
+                    d: "bs",
+                    e: ["kw", "wx", "xw"],
+                    f: "mr",
+                    g: "nq",
+                    h: "qp",
+                    i: ["lx", "vu", "uv"],
+                    j: "wo",
+                    k: "en",
+                    l: "rm",
+                    m: "tl",
+                    n: "yk",
+                    o: ["jk", "st", "ts"],
+                    p: "uj",
+                    q: "ii",
+                    r: "oh",
+                    s: "pg",
+                    t: "af",
+                    u: ["xz", "qr", "rq"],
+                    v: "se",
+                    w: "dd",
+                    x: "fc",
+                    y: "gb",
+                    z: "ha",
+                    "0": "lo",
+                    "1": "ah",
+                    "2": "bg",
+                    "3": "yu",
+                    "4": "uy",
+                    "5": "ki",
+                    "6": "ik",
+                    "7": "kk",
+                    "8": "qk",
+                    "9": "kq",
+                    "{": "qa",
+                    "}": "aq",
+                    "[": "ws",
+                    "]": "sw",
+                    ":": "df",
+                    '"': "fd",
+                    ",": "sx",
+                    "_": "xs",
+                    "\\": "ol"
+                };
+                
+                // enemy types
+                
+                let enemy_types = {
+                    Enemy: {
+                        x: Math.floor(Math.random() * 400 + 50),
+                        y: Math.floor(Math.random() * 200 + 50),
+                        width: 40,
+                        height: 40,
+                        color: "#42e3f5",
+                        max_health: 100,
+                        health: 100,
+                        speed: 2,
+                        stage: 0,
+                        stages: [
+                            {
+                                atk_cooldown: 85,
+                                bullet_amount: 1,
+                                bullet_type: 1,
+                                bullet_speed: 5,
+                                bullet_tracking: !1,
+                                scatter: 0.1,
+                                damage: 10
+                            }
+                        ]
+                    },
+                    ShotgunEnemy: {
+                        x: Math.floor(Math.random() * 400 + 50),
+                        y: Math.floor(Math.random() * 200 + 50),
+                        width: 40,
+                        height: 40,
+                        color: "#1656cc",
+                        max_health: 90,
+                        health: 90,
+                        speed: 3,
+                        stage: 0,
+                        stages: [
+                            {
+                                atk_cooldown: 215,
+                                bullet_amount: 3,
+                                bullet_type: 1,
+                                bullet_speed: 9,
+                                bullet_tracking: !1,
+                                scatter: 0.8,
+                                damage: 20
+                            }
+                        ]
+                    },
+                    ExplosiveEnemy: {
+                        x: Math.floor(Math.random() * 400 + 50),
+                        y: Math.floor(Math.random() * 200 + 50),
+                        width: 40,
+                        height: 40,
+                        color: "#f03d22",
+                        max_health: 60,
+                        health: 60,
+                        speed: 1,
+                        stage: 0,
+                        stages: [
+                            {
+                                atk_cooldown: 260,
+                                bullet_amount: 1,
+                                bullet_type: 3,
+                                bullet_speed: 3,
+                                bullet_tracking: !1,
+                                scatter: 0.1,
+                                damage: 30
+                            }
+                        ]
+                    },
+                    BomberEnemy: {
+                        x: Math.floor(Math.random() * 400 + 50),
+                        y: Math.floor(Math.random() * 200 + 50),
+                        width: 40,
+                        height: 40,
+                        color: "#a9db12",
+                        max_health: 150,
+                        health: 150,
+                        speed: 3,
+                        stage: 0,
+                        stages: [
+                            {
+                                atk_cooldown: 185,
+                                bullet_amount: 1,
+                                bullet_type: 2,
+                                bullet_speed: 6,
+                                bullet_tracking: !1,
+                                scatter: 0.1,
+                                damage: 35
+                            }
+                        ]
+                    },
+                    BarrageEnemy: {
+                        x: Math.floor(Math.random() * 400 + 50),
+                        y: Math.floor(Math.random() * 200 + 50),
+                        width: 40,
+                        height: 40,
+                        color: "#c22704",
+                        max_health: 110,
+                        health: 110,
+                        speed: 2,
+                        stage: 0,
+                        stages: [
+                            {
+                                atk_cooldown: 15,
+                                bullet_amount: 1,
+                                bullet_type: 1,
+                                bullet_speed: 5,
+                                bullet_tracking: !1,
+                                scatter: 0.15,
+                                damage: 5
+                            }
+                        ]
+                    },
+                    TankEnemy: {
+                        x: Math.floor(Math.random() * 400 + 50),
+                        y: Math.floor(Math.random() * 200 + 50),
+                        width: 40,
+                        height: 40,
+                        color: "#d422e0",
+                        max_health: 300,
+                        health: 300,
+                        speed: 1,
+                        stage: 0,
+                        stages: [
+                            {
+                                atk_cooldown: 85,
+                                bullet_amount: 1,
+                                bullet_type: 1,
+                                bullet_speed: 5,
+                                bullet_tracking: !1,
+                                scatter: 0.1,
+                                damage: 15
+                            }
+                        ]
+                    },
+                    Boss: {
+                        x: 220,
+                        y: 220,
+                        width: 60,
+                        height: 60,
+                        color: "#42e3f5",
+                        max_health: 2000,
+                        health: 2000,
+                        speed: 3,
+                        stage: 0,
+                        stages: [
+                            {
+                                atk_cooldown: 70,
+                                bullet_amount: 1,
+                                bullet_type: 1,
+                                bullet_speed: 6,
+                                bullet_tracking: !1,
+                                scatter: 0.1,
+                                damage: 10
+                            },
+                            {
+                                atk_cooldown: 245,
+                                bullet_amount: 1,
+                                bullet_type: 2,
+                                bullet_speed: 7,
+                                bullet_tracking: !1,
+                                scatter: 0.65,
+                                damage: 35
+                            },
+                            {
+                                atk_cooldown: 15,
+                                bullet_amount: 1,
+                                bullet_type: 1,
+                                bullet_speed: 8,
+                                bullet_tracking: !1,
+                                scatter: 0.1,
+                                damage: 5
+                            },
+                            {
+                                atk_cooldown: 285,
+                                bullet_amount: 1,
+                                bullet_type: 3,
+                                bullet_speed: 2,
+                                bullet_tracking: !0,
+                                scatter: 0.4,
+                                damage: 20
+                            }
+                        ],
+                        movement_pattern: [
+                            {
+                                x: 20,
+                                y: 140
+                            },
+                            {
+                                x: 380,
+                                y: 140
+                            },
+                            {
+                                x: 20,
+                                y: 270
+                            },
+                            {
+                                x: 380,
+                                y: 270
+                            },
+                            {
+                                x: 220,
+                                y: 220
+                            }
+                        ],
+                    }
+                }
+                
+                // class statistics
+                
+                let classes = {
+                    "Normal": {
+                        atk_cooldown: 85,
+                        blk_cooldown: 160,
+                        bullet_amount: 1,
+                        bullet_speed: 5,
+                        bullet_type: 1,
+                        bullet_tracking: !1,
+                        scatter: 0.1,
+                        damage: 20,
+                        speed: 1,
+                        health: 100,
+                        stamina: 100,
+                        cost: 0,
+                        id: 1
+                    },
+                    "Bomber": {
+                        atk_cooldown: 95,
+                        blk_cooldown: 115,
+                        bullet_amount: 1,
+                        bullet_speed: 8,
+                        bullet_type: 2,
+                        bullet_tracking: !0,
+                        scatter: 0.8,
+                        damage: 35,
+                        speed: 1.2,
+                        health: 120,
+                        stamina: 110,
+                        cost: 0,
+                        id: 2
+                    },
+                    "Minigunner": {
+                        atk_cooldown: 15,
+                        blk_cooldown: 190,
+                        bullet_amount: 1,
+                        bullet_speed: 6,
+                        bullet_type: 1,
+                        bullet_tracking: !1,
+                        scatter: 0.15,
+                        damage: 5,
+                        speed: 0.8,
+                        health: 80,
+                        stamina: 90,
+                        cost: 0,
+                        id: 3
+                    },
+                    "Shotgunner": {
+                        atk_cooldown: 115,
+                        blk_cooldown: 185,
+                        bullet_amount: 3,
+                        bullet_speed: 6,
+                        bullet_type: 1,
+                        bullet_tracking: !1,
+                        scatter: 0.95,
+                        damage: 25,
+                        speed: 1,
+                        health: 95,
+                        stamina: 120,
+                        cost: 15,
+                        id: 4
+                    },
+                    "Ninja": {
+                        atk_cooldown: 60,
+                        blk_cooldown: 95,
+                        bullet_amount: 1,
+                        bullet_speed: 7,
+                        bullet_type: 1,
+                        bullet_tracking: !1,
+                        scatter: 0.15,
+                        damage: 40,
+                        speed: 1.5,
+                        health: 40,
+                        stamina: 220,
+                        cost: 30,
+                        id: 5
+                    },
+                    "Sniper": {
+                        atk_cooldown: 185,
+                        blk_cooldown: 235,
+                        bullet_amount: 1,
+                        bullet_speed: 10,
+                        bullet_type: 1,
+                        bullet_tracking: !1,
+                        scatter: 0.1,
+                        damage: 90,
+                        speed: 0.8,
+                        health: 91,
+                        stamina: 60,
+                        cost: 50,
+                        id: 6
+                    },
+                    "Rocket Launcher": {
+                        atk_cooldown: 115,
+                        blk_cooldown: 170,
+                        bullet_amount: 1,
+                        bullet_speed: 2,
+                        bullet_type: 3,
+                        bullet_tracking: !0,
+                        scatter: 0.1,
+                        damage: 65,
+                        speed: 0.8,
+                        health: 95,
+                        stamina: 80,
+                        cost: 40,
+                        id: 7
+                    },
+                    "Grenade Launcher": {
+                        atk_cooldown: 165,
+                        blk_cooldown: 245,
+                        bullet_amount: 4,
+                        bullet_speed: 3,
+                        bullet_type: 3,
+                        bullet_tracking: !1,
+                        scatter: 0.7,
+                        damage: 30,
+                        speed: 0.8,
+                        health: 80,
+                        stamina: 65,
+                        cost: 30,
+                        id: 8
+                    },
+                    "Tank": {
+                        atk_cooldown: 115,
+                        blk_cooldown: 210,
+                        bullet_amount: 1,
+                        bullet_speed: 5,
+                        bullet_type: 1,
+                        bullet_tracking: !1,
+                        scatter: 0,
+                        damage: 15,
+                        speed: 0.8,
+                        health: 200,
+                        stamina: 90,
+                        cost: 25,
+                        id: 9
+                    },
+                    "RNG": {
+                        atk_cooldown: 85,
+                        blk_cooldown: 115,
+                        bullet_amount: 5,
+                        bullet_speed: 9,
+                        bullet_type: (Math.random() < 0.5) ? 3 : 1,
+                        bullet_tracking: (Math.random() < 0.5) ? !0 : !1,
+                        scatter: 0.2,
+                        damage: (Math.random() < 0.5) ? 80 : 40,
+                        speed: 1.2,
+                        health: (Math.random() < 0.5) ? 120 : 60,
+                        stamina: (Math.random() < 0.5) ? 160 : 80,
+                        cost: 100,
+                        id: 10
+                    }
+                };
+
+                // maps definition
+           
+                let maps = {
+                    original: [
+                        {
+                            x: 119,
+                            y: 180,
+                            width: 230,
+                            height: 25,
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !0
+                        },
+                        {
+                            x: 79,
+                            y: 100,
+                            width: 172,
+                            height: 25,
+                            color: "#fcba03",
+                            passthrough: [2],
+                            blinking: !1
+                        },
+                        {
+                            x: 193,
+                            y: 258,
+                            width: 25,
+                            height: 190,
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !1
+                        },
+                        {
+                            x: 113,
+                            y: 258,
+                            width: 25,
+                            height: 110,
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !1
+                        },
+                        {
+                            x: 283,
+                            y: 228,
+                            width: 25,
+                            height: 190,
+                            color: "#4dde2a",
+                            passthrough: [1],
+                            blinking: !1
+                        }
+                    ],
+                    separation: [
+                        {
+                            x: 238,
+                            y: 175,
+                            width: 25,
+                            height: 150,
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !1
+                        },
+                        {
+                            x: 0,
+                            y: 300,
+                            width: 180,
+                            height: 25,
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !1
+                        },
+                        {
+                            x: 320,
+                            y: 175,
+                            width: 180,
+                            height: 25,
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !1
+                        },
+                        {
+                            x: 0,
+                            y: 175,
+                            width: 220,
+                            height: 25,
+                            color: "#fcba03",
+                            passthrough: [2],
+                            blinking: !1
+                        },
+                        {
+                            x: 280,
+                            y: 300,
+                            width: 220,
+                            height: 25,
+                            color: "#4dde2a",
+                            passthrough: [1],
+                            blinking: !1
+                        },
+                    ],
+                    passthroughs: [
+                        {
+                            x: 119,
+                            y: 180,
+                            width: 230,
+                            height: 25,
+                            color: "#fcba03",
+                            passthrough: [2],
+                            blinking: !1
+                        },
+                        {
+                            x: 79,
+                            y: 100,
+                            width: 172,
+                            height: 25,
+                            color: "#fcba03",
+                            passthrough: [2],
+                            blinking: !1
+                        },
+                        {
+                            x: 193,
+                            y: 258,
+                            width: 25,
+                            height: 190,
+                            color: "#fcba03",
+                            passthrough: [2],
+                            blinking: !1
+                        },
+                        {
+                            x: 113,
+                            y: 258,
+                            width: 25,
+                            height: 110,
+                            color: "#4dde2a",
+                            passthrough: [1],
+                            blinking: !1
+                        },
+                        {
+                            x: 283,
+                            y: 228,
+                            width: 25,
+                            height: 190,
+                            color: "#4dde2a",
+                            passthrough: [1],
+                            blinking: !1
+                        }
+                    ],
+                    just_some_blocks: [
+                        {
+                            x: Math.floor(Math.random() * 400 + 50),
+                            y: Math.floor(Math.random() * 400 + 20),
+                            width: 65,
+                            height: 65,
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !0
+                        },
+                        {
+                            x: Math.floor(Math.random() * 400 + 50),
+                            y: Math.floor(Math.random() * 400 + 20),
+                            width: 65,
+                            height: 65,
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !1
+                        },
+                        {
+                            x: Math.floor(Math.random() * 400 + 50),
+                            y: Math.floor(Math.random() * 400 + 20),
+                            width: 65,
+                            height: 65,
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !1
+                        },
+                        {
+                            x: Math.floor(Math.random() * 400 + 50),
+                            y: Math.floor(Math.random() * 400 + 20),
+                            width: 65,
+                            height: 65,
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !1
+                        },
+                        {
+                            x: Math.floor(Math.random() * 400 + 50),
+                            y: Math.floor(Math.random() * 400 + 20),
+                            width: 65,
+                            height: 65,
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !1
+                        },
+                        {
+                            x: Math.floor(Math.random() * 400 + 50),
+                            y: Math.floor(Math.random() * 400 + 20),
+                            width: 65,
+                            height: 65,
+                            color: "#4dde2a",
+                            passthrough: [1],
+                            blinking: !1
+                        },
+                        {
+                            x: Math.floor(Math.random() * 400 + 50),
+                            y: Math.floor(Math.random() * 400 + 20),
+                            width: 65,
+                            height: 65,
+                            color: "#fcba03",
+                            passthrough: [2],
+                            blinking: !1
+                        }
+                    ],
+                    randomly_generated: [
+                        {
+                            x: Math.floor(Math.random() * 300 + 50),
+                            y: Math.floor(Math.random() * 150 + 20),
+                            width: 25,
+                            height: Math.floor(Math.random() * 160 + 80),
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !0
+                        },
+                        {
+                            x: Math.floor(Math.random() * 150 + 20),
+                            y: Math.floor(Math.random() * 300 + 50),
+                            width: Math.floor(Math.random() * 160 + 80),
+                            height: 25,
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !0
+                        },
+                        {
+                            x: Math.floor(Math.random() * 300 + 50),
+                            y: Math.floor(Math.random() * 150 + 20),
+                            width: 25,
+                            height: Math.floor(Math.random() * 160 + 80),
+                            color: "#4dde2a",
+                            passthrough: [1],
+                            blinking: !1
+                        },
+                        {
+                            x: Math.floor(Math.random() * 150 + 20),
+                            y: Math.floor(Math.random() * 300 + 50),
+                            width: Math.floor(Math.random() * 160 + 80),
+                            height: 25,
+                            color: "#fcba03",
+                            passthrough: [2],
+                            blinking: !1
+                        },
+                        {
+                            x: Math.floor(Math.random() * 300 + 50),
+                            y: Math.floor(Math.random() * 150 + 20),
+                            width: 25,
+                            height: Math.floor(Math.random() * 160 + 80),
+                            color: "#4dde2a",
+                            passthrough: [1],
+                            blinking: !1
+                        },
+                        {
+                            x: Math.floor(Math.random() * 150 + 20),
+                            y: Math.floor(Math.random() * 300 + 50),
+                            width: Math.floor(Math.random() * 160 + 80),
+                            height: 25,
+                            color: "#fcba03",
+                            passthrough: [2],
+                            blinking: !1
+                        },
+                        {
+                            x: Math.floor(Math.random() * 300 + 50),
+                            y: Math.floor(Math.random() * 150 + 20),
+                            width: 25,
+                            height: Math.floor(Math.random() * 160 + 80),
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !1
+                        },
+                        {
+                            x: Math.floor(Math.random() * 150 + 20),
+                            y: Math.floor(Math.random() * 300 + 50),
+                            width: Math.floor(Math.random() * 160 + 80),
+                            height: 25,
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !1
+                        },
+                        {
+                            x: Math.floor(Math.random() * 300 + 50),
+                            y: Math.floor(Math.random() * 150 + 20),
+                            width: 25,
+                            height: Math.floor(Math.random() * 160 + 80),
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !1
+                        },
+                        {
+                            x: Math.floor(Math.random() * 150 + 20),
+                            y: Math.floor(Math.random() * 300 + 50),
+                            width: Math.floor(Math.random() * 160 + 80),
+                            height: 25,
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !1
+                        }
+                    ],
+                    battlefield: [],
+                    isolation: [
+                        {
+                            x: 0,
+                            y: 238,
+                            width: 500,
+                            height: 25,
+                            color: "#268cc7",
+                            passthrough: [],
+                            blinking: !0
+                        }
+                    ]
+                };
+                
+                let levels = [
+                    {
+                        map: [
+                            {
+                                x: 160,
+                                y: 100,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            },
+                            {
+                                x: 160,
+                                y: 375,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            }
+                        ],
+                        enemies: [
+                            {type: "Enemy", id: enemies.length + 1},
+                            {type: "Enemy", id: enemies.length + 1},
+                            {type: "Enemy", id: enemies.length + 1}
+                        ],
+                        tags: []
+                    },
+                    {
+                        map: [
+                            {
+                                x: 160,
+                                y: 100,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            },
+                            {
+                                x: 160,
+                                y: 375,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            }
+                        ],
+                        enemies: [
+                            {type: "Enemy", id: enemies.length + 1},
+                            {type: "Enemy", id: enemies.length + 1},
+                            {type: "ShotgunEnemy", id: enemies.length + 1},
+                            {type: "ShotgunEnemy", id: enemies.length + 1}
+                        ],
+                        tags: []
+                    },
+                    {
+                        map: [
+                            {
+                                x: 160,
+                                y: 100,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            },
+                            {
+                                x: 160,
+                                y: 375,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            }
+                        ],
+                        enemies: [
+                            {type: "ShotgunEnemy", id: enemies.length + 1},
+                            {type: "ExplosiveEnemy", id: enemies.length + 1},
+                            {type: "TankEnemy", id: enemies.length + 1}
+                        ],
+                        tags: []
+                    },
+                    {
+                        map: [
+                            {
+                                x: 160,
+                                y: 100,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            },
+                            {
+                                x: 160,
+                                y: 375,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            }
+                        ],
+                        enemies: [
+                            {type: "Enemy", id: enemies.length + 1},
+                            {type: "BomberEnemy", id: enemies.length + 1},
+                            {type: "BomberEnemy", id: enemies.length + 1},
+                            {type: "ExplosiveEnemy", id: enemies.length + 1},
+                            {type: "ShotgunEnemy", id: enemies.length + 1}
+                        ],
+                        tags: []
+                    },
+                    {
+                        map: [
+                            {
+                                x: 160,
+                                y: 100,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            },
+                            {
+                                x: 160,
+                                y: 375,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            }
+                        ],
+                        enemies: [
+                            {type: "Boss", id: enemies.length + 1},
+                            {type: "ShotgunEnemy", id: enemies.length + 1},
+                            {type: "ShotgunEnemy", id: enemies.length + 1}
+                        ],
+                        tags: ["BOSS"]
+                    },
+                    {
+                        map: [
+                            {
+                                x: 160,
+                                y: 100,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            },
+                            {
+                                x: 160,
+                                y: 375,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            }
+                        ],
+                        enemies: [
+                            {type: "Enemy", id: enemies.length + 1},
+                            {type: "Enemy", id: enemies.length + 1},
+                            {type: "TankEnemy", id: enemies.length + 1},
+                            {type: "TankEnemy", id: enemies.length + 1},
+                            {type: "BarrageEnemy", id: enemies.length + 1}
+                        ],
+                        tags: []
+                    },
+                    {
+                        map: [
+                            {
+                                x: 160,
+                                y: 100,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            },
+                            {
+                                x: 160,
+                                y: 375,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            }
+                        ],
+                        enemies: [
+                            {type: "ShotgunEnemy", id: enemies.length + 1},
+                            {type: "ShotgunEnemy", id: enemies.length + 1},
+                            {type: "BarrageEnemy", id: enemies.length + 1},
+                            {type: "BarrageEnemy", id: enemies.length + 1}
+                        ],
+                        tags: []
+                    },
+                    {
+                        map: [
+                            {
+                                x: 160,
+                                y: 100,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            },
+                            {
+                                x: 160,
+                                y: 375,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            }
+                        ],
+                        enemies: [
+                            {type: "TankEnemy", id: enemies.length + 1},
+                            {type: "TankEnemy", id: enemies.length + 1},
+                            {type: "TankEnemy", id: enemies.length + 1},
+                            {type: "BarrageEnemy", id: enemies.length + 1}
+                        ],
+                        tags: []
+                    },
+                    {
+                        map: [
+                            {
+                                x: 160,
+                                y: 100,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            },
+                            {
+                                x: 160,
+                                y: 375,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            }
+                        ],
+                        enemies: [
+                            {type: "Enemy", id: enemies.length + 1},
+                            {type: "ExplosiveEnemy", id: enemies.length + 1},
+                            {type: "BomberEnemy", id: enemies.length + 1},
+                            {type: "TankEnemy", id: enemies.length + 1},
+                            {type: "ShotgunEnemy", id: enemies.length + 1},
+                            {type: "BarrageEnemy", id: enemies.length + 1}
+                        ],
+                        tags: []
+                    },
+                    {
+                        map: [
+                            {
+                                x: 160,
+                                y: 100,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            },
+                            {
+                                x: 160,
+                                y: 375,
+                                width: 180,
+                                height: 25,
+                                color: "#268cc7",
+                                passthrough: [],
+                                blinking: !1
+                            }
+                        ],
+                        enemies: [
+                            {type: "Boss", id: enemies.length + 1},
+                            {type: "BarrageEnemy", id: enemies.length + 1},
+                            {type: "ExplosiveEnemy", id: enemies.length + 1},
+                            {type: "TankEnemy", id: enemies.length + 1}
+                        ],
+                        tags: ["BOSS"]
+                    }
+                ]
+           
+                // shuffle maps and get random 3 maps to display
+           
+                let displayed_maps = Object.keys(maps).sort(() => Math.random() - 0.5).slice(0, 3);
+           
+                let keyDownHandler = (e) => {
+                    let index = keys_pressed.indexOf(e.key);
+                    if (index <= -1) {
+                        // add key to keys_pressed
+                        
+                        keys_pressed.push(e.key);
+                    };
+                };
+                
+                let keyUpHandler = (e) => {
+                    let index = keys_pressed.indexOf(e.key);
+                    if (index > -1) {
+                        // remove key from keys_pressed
+                        
+                        keys_pressed.splice(index, 1);
+                    };
+                };
+    
+                // collision formula
+    
+                let collision = (x1, y1, width1, height1, x2, y2, width2, height2) => {
+                    return !(x1 + width1 <= x2 || x1 >= x2 + width2 || y1 + height1 <= y2 || y1 >= y2 + height2);
+                };
+                
+                let collision_1 = (x, y, width, height) => {
+                    return collision(player_1_x, player_1_y, player_size_width, player_size_height, x, y, width, height);
+                };
+                
+                let collision_2 = (x, y, width, height) => {
+                    return collision(player_2_x, player_2_y, player_size_width, player_size_height, x, y, width, height);
+                };
+                
+                // function to return closest player position
+                
+                let getClosestPlayerPosition = (x, y) => {
+                    let length_1 = Math.sqrt((player_1_x - x) * (player_1_x - x) + (player_1_y - y) * (player_1_y - y));
+                    let length_2 = Math.sqrt((player_2_x - x) * (player_2_x - x) + (player_2_y - y) * (player_2_y - y));
+                    
+                    return configuration.singleplayer_mode ? ({x: player_1_x, y: player_1_y, plr: 1}) : (length_1 <= length_2 ? {x: player_1_x, y: player_1_y, plr: 1} : {x: player_2_x, y: player_2_y, plr: 2});
+                };
+                
+                // loading functions
+                
+                let loadShop = () => {
+                    // remove previous shop menus
+                    
+                    if ($("#shop_menu")) document.getElementById("shop_menu");
+                    
+                    let shop_menu = createElement("div");
+                    let back_button = createElement("button");
+                    
+                    let header_1 = createElement("h2", {textContent: "Classes"});
+                    let header_2 = createElement("h2", {textContent: "Upgrades (not implemented yet)"});
+                    
+                    shop_menu.appendChild(header_1);
+                    
+                    for (let i = Number(localStorage.getItem("unlocked_classes")); i < Object.keys(classes).length; i++) {
+                        let unlock_button = createElement("button", {textContent: `Unlock Class ${Object.keys(classes)[i]} (${Object.values(classes)[i].cost} Coins)`, parent: shop_menu});
+                        createElement("br", {parent: shop_menu});
+    
+                        unlock_button.addEventListener("click", () => {
+                            if (localStorage.getItem("coins") >= Object.values(classes)[i].cost) {
+                                localStorage.setItem("coins", Number(localStorage.getItem("coins")) - Object.values(classes)[i].cost);
+                                localStorage.setItem("unlocked_classes", Number(localStorage.getItem("unlocked_classes")) + 1);
+                                
+                                unlock_button.remove();
+                                coin_text.textContent = localStorage.getItem('coins') + " Coins";
+    
+                                alert("You have successfully unlocked the class " + Object.keys(classes)[i] + " for " + Object.values(classes)[i].cost + " coins!");
+                                
+                                loadShop();
+                            } else {
+                                alert("Insufficient coins.");
+                            };
+                        });
+                        
+                        if (i > Number(localStorage.getItem("unlocked_classes"))) {
+                            unlock_button.disabled = !0;
+                        };
+                    };
+                    
+                    if (Number(localStorage.getItem("unlocked_classes")) >= Object.keys(classes).length) {
+                        createElement("p", {textContent: "You have already bought all of the classes in the shop!", parent: shop_menu});
+                    };
+                    
+                    shop_menu.appendChild(header_2);
+                    
+                    let ownedUpgrades = JSON.parse(localStorage.getItem("upgrades") || "[]");
+                    let unownedUpgrades = upgrades.filter(entry => !ownedUpgrades.includes(entry.id));
+                    
+                    for (let i = 0; i < unownedUpgrades.length; i++) {
+                        let unlock_button = createElement("button", {textContent: `${unownedUpgrades[i].name} (${unownedUpgrades[i].cost} Coins)`, parent: shop_menu});
+                        createElement("br", {parent: shop_menu});
+                        
+                        unlock_button.addEventListener("click", () => {
+                            if (localStorage.getItem("coins") >= unownedUpgrades[i].cost) {
+                                localStorage.setItem("coins", Number(localStorage.getItem("coins")) - unownedUpgrades[i].cost);
+                                
+                                ownedUpgrades.push(unownedUpgrades[i].id);
+                                
+                                localStorage.setItem("upgrades", JSON.stringify(ownedUpgrades));
+                                
+                                unlock_button.remove();
+                                coin_text.textContent = localStorage.getItem('coins') + " Coins";
+    
+                                alert("You have successfully unlocked the upgrade " + unownedUpgrades[i].name + " for " + unownedUpgrades[i].cost + " coins!");
+                                
+                                loadShop();
+                            } else {
+                                alert("Insufficient coins.");
+                            };
+                        });
+                    };
+                    
+                    if (unownedUpgrades.length <= 0) {
+                        createElement("p", {textContent: "You have already bought all of the upgrades in the shop!", parent: shop_menu});
+                    };
+                    
+                    shop_menu.id = "shop_menu";
+                    
+                    back_button.textContent = "Back";
+                    back_button.addEventListener("click", () => {
+                        $("#start_menu").style.display = "block";
+                        
+                        shop_menu.remove();
+                    });
+                    
+                    shop_menu.appendChild(back_button);
+                    document.body.appendChild(shop_menu);
+                };
+                
+                // conversion functions
+                
+                let convertExperience = () => {
+                    // calculate new values and apply them
+                    
+                    let experience = localStorage.getItem("experience");
+                    
+                    let conversion = (lvl) => 25 * lvl * lvl - 25 * lvl + 300;
+                    let attempts = 0;
+                    
+                    while (experience >= conversion(localStorage.getItem('level')) && attempts < 100) {
+                        experience -= conversion(localStorage.getItem('level'));
+                        localStorage.setItem('level', Number(localStorage.getItem('level')) + 1);
+                        
+                        attempts += 1;
+                    };
+                    
+                    localStorage.setItem('experience', experience);
+                };
+                
+                // save functions
+                
+                saveData = () => {
+                    // get save data
+                    
+                    let save = {
+                        lv: localStorage.getItem('level'),
+                        xp: localStorage.getItem('experience'),
+                        cn: localStorage.getItem('coins'),
+                        clv: localStorage.getItem('campaign_level'),
+                        iv: {cl: localStorage.getItem('unlocked_classes'), up: JSON.parse(localStorage.getItem('upgrades') || "[]")},
+                        v: 1
+                    };
+                    
+                    let random_value = Math.random();
+                    
+                    // convert to JSON and encode save data
+                    
+                    let save_data = JSON.stringify(save).replace(/[{}[\]":,a-z0-9]/gi, x =>
+                        Array.isArray(replacements[x.toLowerCase()])
+                            ? (x === x.toLowerCase()
+                                ? replacements[x.toLowerCase()][Math.floor(random_value * replacements[x.toLowerCase()].length)]
+                                : replacements[x.toLowerCase()][Math.floor(random_value * replacements[x.toLowerCase()].length)].toUpperCase())
+                            : (replacements[x.toLowerCase()]
+                                ? (x === x.toLowerCase()
+                                    ? replacements[x.toLowerCase()]
+                                    : replacements[x.toLowerCase()].toUpperCase())
+                                : x)
+                    );
+                    
+                    $("#save_input").value = save_data;
+                    alert("Save Code: " + save_data);
+                };
+                
+                importData = () => {
+                    try {
+                        let input_code = $("#save_input").value;
+                        let decoding_table = {};
+                        
+                        // reverse replacement mapping
+                        
+                        Object.entries(replacements).forEach(([letter, value]) => {
+                            if (Array.isArray(value)) {
+                                // handle randomness in characters
+                                
+                                value.forEach(v => {
+                                    decoding_table[v] = letter;
+                                    if (v !== v.toUpperCase()) {
+                                        decoding_table[v.toUpperCase()] = letter.toUpperCase();
+                                    };
+                                });
+                            } else {
+                                // simple subsitution
+                                
+                                decoding_table[value] = letter;
+                                if (value !== value.toUpperCase()) {
+                                    decoding_table[value.toUpperCase()] = letter.toUpperCase();
+                                };
+                            }
+                        });
+                        
+                        // create a Regex pattern sorted by length
+                        
+                        let pattern = new RegExp(
+                            Object.keys(decoding_table)
+                                .sort((a, b) => b.length - a.length)
+                                .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+                                .join("|"),
+                            "g"
+                        );
+                        
+                        // use Regex to decode save code
+                        
+                        let save = JSON.parse(input_code.replace(pattern, match => {
+                            let decoded = decoding_table[match.toLowerCase()];
+                            return decoded
+                                ? (match === match.toUpperCase() ? decoded.toUpperCase() : decoded)
+                                : match;
+                        }));
+                        
+                        // restore data from JSON string
+                        
+                        localStorage.setItem('level', save.lv);
+                        localStorage.setItem('experience', save.xp);
+                        localStorage.setItem('coins', save.cn);
+                        
+                        localStorage.setItem('campaign_level', save.clv);
+                        localStorage.setItem('unlocked_classes', save.iv.cl);
+                        localStorage.setItem('upgrades', JSON.stringify(save.iv.up));
+                        
+                        // display new data
+                        
+                        level_text.textContent = "Level " + localStorage.getItem('level') + " (" + localStorage.getItem('experience') + "/" + ((lvl) => 25 * lvl * lvl - 25 * lvl + 300)(localStorage.getItem('level')) + " Experience)";
+                        coin_text.textContent = localStorage.getItem('coins') + " Coins";
+                        
+                        alert("Successfully loaded save!");
+                    } catch (error) {
+                        // prevent invalid save codes from causing errors
+                        
+                        alert("Invalid or corrupted save code: " + error);
+                    };
+                };
+                
+                // encoding functions
+                
+                encodeText = () => {
+                    let input_value = $("#encode_input").value;
+                    let random_value = Math.random();
+                    let encoded_text = input_value.replace(/[{}[\]":,a-z0-9]/gi, x =>
+                        Array.isArray(replacements[x.toLowerCase()])
+                            ? (x === x.toLowerCase()
+                                ? replacements[x.toLowerCase()][Math.floor(random_value * replacements[x.toLowerCase()].length)]
+                                : replacements[x.toLowerCase()][Math.floor(random_value * replacements[x.toLowerCase()].length)].toUpperCase())
+                            : (replacements[x.toLowerCase()]
+                                ? (x === x.toLowerCase()
+                                    ? replacements[x.toLowerCase()]
+                                    : replacements[x.toLowerCase()].toUpperCase())
+                                : x)
+                    );
+                    
+                    $("#encode_input").value = encoded_text;
+                    alert(encoded_text);
+                };
+                
+                decodeText = () => {
+                    try {
+                        let input_value = $("#encode_input").value;
+                        let decoding_table = {};
+                        
+                        // reverse replacement mapping
+                        
+                        Object.entries(replacements).forEach(([letter, value]) => {
+                            if (Array.isArray(value)) {
+                                // handle randomness in characters
+                                
+                                value.forEach(v => {
+                                    decoding_table[v] = letter;
+                                    if (v !== v.toUpperCase()) {
+                                        decoding_table[v.toUpperCase()] = letter.toUpperCase();
+                                    };
+                                });
+                            } else {
+                                // simple subsitution
+                                
+                                decoding_table[value] = letter;
+                                if (value !== value.toUpperCase()) {
+                                    decoding_table[value.toUpperCase()] = letter.toUpperCase();
+                                };
+                            }
+                        });
+                        
+                        // create a Regex pattern sorted by length
+                        
+                        let pattern = new RegExp(
+                            Object.keys(decoding_table)
+                                .sort((a, b) => b.length - a.length)
+                                .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+                                .join("|"),
+                            "g"
+                        );
+                        
+                        // preserve capitalization when decoding
+                        
+                        let decoded_text = input_value.replace(pattern, match => {
+                            let decoded = decoding_table[match.toLowerCase()];
+                            return decoded
+                                ? (match === match.toUpperCase() ? decoded.toUpperCase() : decoded)
+                                : match;
+                        });
+                        
+                        $("#encode_input").value = decoded_text;
+                        alert(decoded_text);
+                    } catch (error) {
+                        alert("Invalid or corrupted encoded text!");
+                    };
+                };
+                
+                // main game function that draws everything on the canvas and detects player inputs
+                  
+                let draw = () => {
+                    // draw background
+                         
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.beginPath();
+                    ctx.fillStyle = background_color;
+                    ctx.fillRect(
+                        0,
+                        0,
+                        canvas.width,
+                        canvas.height
+                    );
+                    
+                    // input detection
+                    
+                    let inputs = {
+                        w: {plr: 1, x: 0, y: -3, tags: []},
+                        a: {plr: 1, x: -3, y: 0, tags: []},
+                        s: {plr: 1, x: 0, y: 3, tags: []},
+                        d: {plr: 1, x: 3, y: 0, tags: []},
+                        i: {plr: 2, x: 0, y: -3, tags: []},
+                        j: {plr: 2, x: -3, y: 0, tags: []},
+                        k: {plr: 2, x: 0, y: 3, tags: []},
+                        l: {plr: 2, x: 3, y: 0, tags: []}
+                    };
+                         
+                    if (keys_pressed.length !== 0) {
+                        // blocking logic with a cooldown
+                       
+                        if (!block_cooldown_1 && (stamina_1 >= stamina_consumption.dash) && keys_pressed.includes("q")) {
+                            Object.values(multipliers).find(entry => entry.plr == 1).data.speed = 3;
+                            
+                            block_1 = !0;
+                            block_cooldown_1 = !0;
+                            
+                            stamina_cooldown_1 = !0;
+                            
+                            stamina_1 -= stamina_consumption.dash;
+                            
+                            setTimeout(() => {block_1 = !1; Object.values(multipliers).find(entry => entry.plr == 1).data.speed = 1}, 320);
+                            setTimeout(() => {
+                                block_cooldown_1 = !1;
+                            }, Math.floor(Object.values(classes).find(entry => entry.id == player_class_1).blk_cooldown * 10 / Object.values(multipliers).find(entry => entry.plr == 1).data.block));
+                        };
+                       
+                        if (!configuration.singleplayer_mode && !block_cooldown_2 && (stamina_2 >= stamina_consumption.dash) && keys_pressed.includes("o")) {
+                            Object.values(multipliers).find(entry => entry.plr == 2).data.speed = 3;
+                            
+                            block_2 = !0;
+                            block_cooldown_2 = !0;
+                            
+                            stamina_cooldown_2 = !0;
+                            
+                            stamina_2 -= stamina_consumption.dash;
+                            
+                            setTimeout(() => {block_2 = !1; Object.values(multipliers).find(entry => entry.plr == 2).data.speed = 1}, 320);
+                            setTimeout(() => {
+                                block_cooldown_2 = !1;
+                            }, Math.floor(Object.values(classes).find(entry => entry.id == player_class_2).blk_cooldown * 10 / Object.values(multipliers).find(entry => entry.plr == 2).data.block));
+                        };
+                       
+                        // bullet shooting logic with a cooldown
+                       
+                        if (!bullet_cooldown_1 && (stamina_1 >= stamina_consumption.shoot) && keys_pressed.includes("e") && bullets.length <= 50) {
+                            for (let i = 0; i < Object.values(classes).find(entry => entry.id == player_class_1).bullet_amount; i++) {
+                                bullets.push({x: player_1_x, y: player_1_y, width: (player_size_width / ((player_class_1 == 2) ? 2 : 4)), height: (player_size_width / ((player_class_1 == 2) ? 2 : 4)), color: "#4dde2a", speed: Object.values(classes).find(entry => entry.id == player_class_1).bullet_speed, damage: Object.values(classes).find(entry => entry.id == player_class_1).damage, plr: 1, type: Object.values(classes).find(entry => entry.id == player_class_1).bullet_type, tracking: Object.values(classes).find(entry => entry.id == player_class_1).bullet_tracking, timeout: !1, ricochet: !1, offset: Object.values(classes).find(entry => entry.id == player_class_1).scatter ? (Math.random() - 0.5) * Object.values(classes).find(entry => entry.id == player_class_1).scatter : 0, frozen: !1, tags: [], id: bullets.length + 1});
+                            };
+                            
+                            if (player_class_1 !== 3) {
+                                stamina_1 -= stamina_consumption.shoot;
+                            };
+                            
+                            stamina_cooldown_1 = !0;
+                            
+                            bullet_cooldown_1 = !0;
+                            setTimeout(() => {
+                                bullet_cooldown_1 = !1;
+                            }, Math.floor(Object.values(classes).find(entry => entry.id == player_class_1).atk_cooldown * 10 / Object.values(multipliers).find(entry => entry.plr == 1).data.fire_rate));
+                        };
+                       
+                        if (!configuration.singleplayer_mode && !bullet_cooldown_2 && (stamina_2 >= stamina_consumption.shoot) && keys_pressed.includes("u") && bullets.length <= 50) {
+                            for (let i = 0; i < Object.values(classes).find(entry => entry.id == player_class_2).bullet_amount; i++) {
+                                bullets.push({x: player_2_x, y: player_2_y, width: (player_size_width / ((player_class_2 == 2) ? 2 : 4)), height: (player_size_width / ((player_class_2 == 2) ? 2 : 4)), color: "#fcba03", speed: Object.values(classes).find(entry => entry.id == player_class_2).bullet_speed, damage: Object.values(classes).find(entry => entry.id == player_class_2).damage, plr: 2, type: Object.values(classes).find(entry => entry.id == player_class_2).bullet_type, tracking: Object.values(classes).find(entry => entry.id == player_class_2).bullet_tracking, timeout: !1, ricochet: !1, offset: Object.values(classes).find(entry => entry.id == player_class_2).scatter ? (Math.random() - 0.5) * Object.values(classes).find(entry => entry.id == player_class_2).scatter : 0, frozen: !1, tags: [], id: bullets.length + 1});
+                            };
+                            
+                            if (player_class_2 !== 3) {
+                                stamina_2 -= stamina_consumption.shoot;
+                            };
+                            
+                            stamina_cooldown_2 = !0;
+                            
+                            bullet_cooldown_2 = !0;
+                            setTimeout(() => {
+                                bullet_cooldown_2 = !1;
+                            }, Math.floor(Object.values(classes).find(entry => entry.id == player_class_2).atk_cooldown * 10 / Object.values(multipliers).find(entry => entry.plr == 2).data.fire_rate));
+                        };
+                       
+                        keys_pressed.forEach((key) => {
+                            // movement logic
+                           
+                            if (inputs[key]) {
+                                let update = inputs[key];
+                           
+                                let new_x_1 = player_1_x + (update.plr == 1 ? (Math.floor(update.x * Object.values(classes).find(entry => entry.id == player_class_1).speed * Object.values(multipliers).find(entry => entry.plr == 1).data.speed)) : 0);
+                                let new_y_1 = player_1_y + (update.plr == 1 ? (Math.floor(update.y * Object.values(classes).find(entry => entry.id == player_class_1).speed * Object.values(multipliers).find(entry => entry.plr == 1).data.speed)) : 0);
+                           
+                                let new_x_2 = player_2_x + (update.plr == 2 ? (Math.floor(update.x * Object.values(classes).find(entry => entry.id == player_class_2).speed * Object.values(multipliers).find(entry => entry.plr == 2).data.speed)) : 0);
+                                let new_y_2 = player_2_y + (update.plr == 2 ? (Math.floor(update.y * Object.values(classes).find(entry => entry.id == player_class_2).speed * Object.values(multipliers).find(entry => entry.plr == 2).data.speed)) : 0);
+                           
+                                let can_move_1 = !0;
+                                let can_move_2 = !0;
+                           
+                                // wall collision detection
+                           
+                                obstacles.forEach((obstacle) => {
+                                    if (collision(new_x_1, new_y_1, player_size_width - 1, player_size_height - 1, obstacle.x, obstacle.y, obstacle.width, obstacle.height) && !obstacle.passthrough.includes(1)) {
+                                        can_move_1 = !1;
+                                    };
+                                         
+                                    if (collision(new_x_2, new_y_2, player_size_width - 1, player_size_height - 1, obstacle.x, obstacle.y, obstacle.width, obstacle.height) && !obstacle.passthrough.includes(2)) {
+                                        can_move_2 = !1;
+                                    };
+                                });
+                                
+                                enemies.forEach((enemy) => {
+                                    if (collision(new_x_1, new_y_1, player_size_width - 1, player_size_height - 1, enemy.x, enemy.y, enemy.width, enemy.height)) {
+                                        can_move_1 = !1;
+                                    };
+                                         
+                                    if (collision(new_x_2, new_y_2, player_size_width - 1, player_size_height - 1, enemy.x, enemy.y, enemy.width, enemy.height)) {
+                                        can_move_2 = !1;
+                                    };
+                                });
+                           
+                                if (collision(new_x_1, new_y_1, player_size_width, player_size_height, new_x_2, new_y_2, player_size_width, player_size_height)) {
+                                    can_move_1 = !1;
+                                    can_move_2 = !1;
+                                };
+                           
+                                // stop movement when colliding with walls
+    
+                                if (can_move_1) {
+                                    player_1_x = new_x_1;
+                                    player_1_y = new_y_1;
+                                };
+    
+                                if (!configuration.singleplayer_mode && can_move_2) {
+                                    player_2_x = new_x_2;
+                                    player_2_y = new_y_2;
+                                };
+                           
+                                // keep players on the map
+                           
+                                player_1_x = Math.max(player_1_x, 0);
+                                player_2_x = Math.max(player_2_x, 0);
+                           
+                                player_1_x = Math.min(player_1_x, canvas.width - player_size_width);
+                                player_2_x = Math.min(player_2_x, canvas.width - player_size_width);
+                           
+                                player_1_y = Math.max(player_1_y, 0);
+                                player_2_y = Math.max(player_2_y, 0);
+                           
+                                player_1_y = Math.min(player_1_y, canvas.height - player_size_width);
+                                player_2_y = Math.min(player_2_y, canvas.height - player_size_width);
+                            };
+                        });
+                    };
+                    
+                    // collectible logic
+                    
+                    collectibles.forEach((collectible) => {
+                        if (collision(player_1_x, player_1_y, player_size_width, player_size_height, collectible.x, collectible.y, collectible.width, collectible.height)) {
+                            if (collectibles.indexOf(collectible) > -1) collectibles.splice(collectibles.indexOf(collectible), 1);
+                            
+                            let buff = Math.floor(Math.random() * 2 + 1);
+                            
+                            switch (buff) {
+                                case 1:
+                                    health_1 += 40;
+                                    health_1 = Math.min(health_1, max_health_1);
+                                    
+                                    damages.push({x: collectible.x, y: collectible.y, amount: 40, prefix: "+", disappearing: !1});
+                                    break;
+                                case 2:
+                                    if (!damage_immune_1) {
+                                        damage_immune_1 = !0;
+                                        setTimeout(() => {damage_immune_1 = !1}, 4500);
+                                    };
+                                    break;
+                                default:
+                                    break;
+                            };
+                        };
+                        if (!configuration.singleplayer_mode && collision(player_2_x, player_2_y, player_size_width, player_size_height, collectible.x, collectible.y, collectible.width, collectible.height)) {
+                            if (collectibles.indexOf(collectible) > -1) collectibles.splice(collectibles.indexOf(collectible), 1);
+                            
+                            let buff = Math.floor(Math.random() * 2 + 1);
+                            
+                            switch (buff) {
+                                case 1:
+                                    health_2 += 40;
+                                    health_2 = Math.min(health_2, max_health_2);
+                                    
+                                    damages.push({x: collectible.x, y: collectible.y, amount: 40, prefix: "+", disappearing: !1});
+                                    break;
+                                case 2:
+                                    if (!damage_immune_2) {
+                                        damage_immune_2 = !0;
+                                        setTimeout(() => {damage_immune_2 = !1}, 4500);
+                                    };
+                                    break;
+                                default:
+                                    break;
+                            };
+                        };
+                    });
+                    
+                    // enemy movement and attack logic
+                    
+                    enemies.forEach((enemy) => {
+                        if (!enemy.atk) {
+                            enemy.atk = setInterval(() => {
+                                for (let i = 0; i < (enemy.bullet_amount ? enemy.bullet_ammount : enemy.stages[enemy.stage].bullet_amount); i++) {
+                                    bullets.push({x: enemy.x, y: enemy.y, width: (player_size_width / ((enemy.bullet_type ? enemy.bullet_type : enemy.stages[enemy.stage].bullet_type == 2) ? 2 : 4)), height: (player_size_width / ((enemy.bullet_type ? enemy.bullet_type : enemy.stages[enemy.stage].bullet_type == 2) ? 2 : 4)), color: "#42e3f5", speed: enemy.bullet_speed ? enemy.bullet_speed : enemy.stages[enemy.stage].bullet_speed, damage: enemy.damage ? enemy.damage : enemy.stages[enemy.stage].damage, plr: !1, type: enemy.bullet_type ? enemy.bullet_type : enemy.stages[enemy.stage].bullet_type, tracking: enemy.bullet_tracking ? enemy.bullet_tracking : enemy.stages[enemy.stage].bullet_tracking, timeout: !1, ricochet: !1, offset: (enemy.scatter ? enemy.scatter : enemy.stages[enemy.stage].scatter) ? (Math.random() - 0.5) * (enemy.scatter ? enemy.scatter : enemy.stages[enemy.stage].scatter) : 0, target: Math.random() <= 0.5, frozen: !1, tags: [], id: bullets.length + 1});
+                                };
+                            }, enemy.atk_cooldown ? (enemy.atk_cooldown * 10) : (enemy.stages[enemy.stage].atk_cooldown * 10));
+                        };
+                        
+                        if (enemy.movement_pattern) {
+                            if (!enemy.movement_target) {
+                                if (!enemy.a) {
+                                    enemy.a = setTimeout(() => {
+                                        enemy.movement_target = enemy.movement_pattern[Math.floor(Math.random() * enemy.movement_pattern.length)];
+                                        enemy.a = !1;
+                                    }, 2600);
+                                };
+                            } else {
+                                // calculate direction vectors
+                                
+                                let dx = enemy.x - enemy.movement_target.x;
+                                let dy = enemy.y - enemy.movement_target.y;
+                                
+                                // vector magnitude formula
+                                
+                                let length = Math.sqrt(dx * dx + dy * dy);
+                                
+                                // calculate new positions
+                                
+                                let new_x = enemy.x - (dx / length * enemy.speed);
+                                let new_y = enemy.y - (dy / length * enemy.speed);
+                                
+                                // check for collisions
+                                
+                                let can_move = !0;
+                                
+                                obstacles.forEach((obstacle) => {
+                                    if (collision(new_x, new_y, enemy.width, enemy.height, obstacle.x, obstacle.y, obstacle.width, obstacle.height)) {
+                                        can_move = !1;
+                                    };
+                                });
+                                
+                                if (length <= 5) {
+                                    enemy.movement_target = !1;
+                                } else if (can_move) {
+                                    // calculate new positions based on vector magnitude and enemy speed
+                                
+                                    enemy.x = new_x;
+                                    enemy.y = new_y;
+                                } else {
+                                    enemy.movement_target = !1;
+                                };
+                            };
+                        } else {
+                            // calculate direction vectors
+                                
+                            let dx = enemy.x - getClosestPlayerPosition(enemy.x, enemy.y).x;
+                            let dy = enemy.y - getClosestPlayerPosition(enemy.x, enemy.y).y;
+                            
+                            // vector magnitude formula
+                            
+                            let length = Math.sqrt(dx * dx + dy * dy);
+                            
+                            // calculate new positions
+                            
+                            let new_x = enemy.x - (dx / length * enemy.speed);
+                            let new_y = enemy.y - (dy / length * enemy.speed);
+                            
+                            // check for collisions
+                            
+                            let can_move = !0;
+                            
+                            obstacles.forEach((obstacle) => {
+                                if (collision(new_x, new_y, enemy.width, enemy.height, obstacle.x, obstacle.y, obstacle.width, obstacle.height)) {
+                                    can_move = !1;
+                                };
+                            });
+                            
+                            if (length > 120 && can_move) {
+                                // calculate new positions based on vector magnitude and enemy speed
+                            
+                                enemy.x = new_x;
+                                enemy.y = new_y;
+                            };
+                        };
+                    });
+                         
+                    // bullet logic
+                         
+                    if (bullets.length > 0) {
+                        bullets.forEach((bullet) => {
+                            // remove bullets after 8.5 seconds
+                            
+                            if (!bullet.timeout) {
+                                setTimeout(() => {
+                                    if (bullets.indexOf(bullet) > -1) bullets.splice(bullets.indexOf(bullet), 1);
+                                }, 8500);
+                                bullet.timeout = !0;
+                            };
+                            
+                            // get target player positions
+                            
+                            let plr_x = (bullet.plr == 1) ? player_2_x : player_1_x;
+                            let plr_y = (bullet.plr == 1) ? player_2_y : player_1_y;
+                            
+                            if (enemies.length > 0 && bullet.plr !== !1) {
+                                // get position of closest enemy
+                                
+                                let closest_enemy = (() => {
+                                    let min = !1;
+                                    
+                                    for (let enemy of enemies) {
+                                        if (min) {
+                                            if (Math.sqrt((enemy.x - bullet.x) * (enemy.x - bullet.x) + (enemy.y - bullet.y) * (enemy.y - bullet.y)) < Math.sqrt((min.x - bullet.x) * (min.x - bullet.x) + (min.y - bullet.y) * (min.y - bullet.y))) {
+                                                min = enemy;
+                                            };
+                                        } else {
+                                            min = enemy;
+                                        };
+                                    };
+                                    
+                                    return min;
+                                })();
+                                
+                                plr_x = closest_enemy.x;
+                                plr_y = closest_enemy.y;
+                            };
+                            if (bullet.plr === !1 && bullet.target !== undefined) {
+                                if (configuration.singleplayer_mode) {
+                                    plr_x = bullet.target ? player_2_x : player_1_x;
+                                    plr_y = bullet.target ? player_2_y : player_1_y;
+                                } else {
+                                    plr_x = player_1_x;
+                                    plr_y = player_1_y;
+                                };
+                            };
+                            
+                            if (!bullet.frozen) {
+                                // bomb logic (type 2)
+                                
+                                if (bullet.type == 2 && !bullet.tags.includes("bomb")) {
+                                    bullet.tags.push("bomb");
+                                    setTimeout(() => {bullet.frozen = !0}, 150);
+                                };
+                                
+                                // normal bullets (type 1)
+                                
+                                let dx, dy;
+                                
+                                if (bullet.tracking) {
+                                    // calculate direction vectors
+                                    
+                                    dx = bullet.x - plr_x;
+                                    dy = bullet.y - plr_y;
+                                } else if (!bullet.dx || !bullet.dy) {
+                                    bullet.dx = bullet.x - plr_x;
+                                    bullet.dy = bullet.y - plr_y;
+                                };
+                                
+                                if (bullet.dx && bullet.dy) {
+                                    dx = bullet.dx;
+                                    dy = bullet.dy;
+                                };
+                                
+                                // vector magnitude formula
+                                
+                                let length = Math.sqrt(dx * dx + dy * dy);
+                                
+                                // apply offset if necessary
+    
+                                let offset = bullet.offset ? bullet.offset : 0;
+                                
+                                // rotate direction vectors
+                                
+                                let rotated_dx = dx * Math.cos(offset) - dy * Math.sin(offset);
+                                let rotated_dy = dx * Math.sin(offset) + dy * Math.cos(offset);
+    
+                                // calculate new positions based on vector magnitude and bullet speed
+                                
+                                let new_bullet_x = bullet.x - ((bullet.ricochet ? -1 : 1) * (rotated_dx / length) * bullet.speed);
+                                let new_bullet_y = bullet.y - ((bullet.ricochet ? -1 : 1) * (rotated_dy / length) * bullet.speed);
+                                
+                                // flag to detect wall collisions
+                                
+                                let bullet_stopped = !1;
+    
+                                obstacles.forEach((obstacle) => {
+                                    // stop bullets on contact with walls
+                                    
+                                    if (!obstacle.passthrough.includes(bullet.plr) && collision(new_bullet_x, new_bullet_y, player_size_width / 4, player_size_width / 4, obstacle.x, obstacle.y, obstacle.width, obstacle.height)) {
+                                        if (bullet.type == 1) {
+                                            bullet_stopped = !0;
+                                            
+                                            // create 5 particles with random direction vectors (from -1 to 1) and a random ashlike color
+                                            
+                                            for (let i = 0; i < 5; i++) {
+                                                let random_color = Math.floor(Math.random() * 100 + 50);
+                                                
+                                                effects.particles.push({x: bullet.x, y: bullet.y, dx: Math.random() * 2 - 1, dy: Math.random() * 2 - 1, color: `rgb(${random_color}, ${random_color}, ${random_color})`, opacity: 1, life: 35 + Math.floor(Math.random() * 25 + 5)});
+                                            };
+                                        } else {
+                                            // create an explosion
+                                            
+                                            effects.explosions.push({x: bullet.x, y: bullet.y, size: 2, radius: 0, opacity: 1, damage: bullet.damage, plr: bullet.plr});
+                                            
+                                            if (bullets.indexOf(bullet) > -1) bullets.splice(bullets.indexOf(bullet), 1);
+                                        };
+                                    };
+                                });
+                                
+                                // update bullet position
+                               
+                                if (!bullet_stopped) {
+                                    bullet.x = new_bullet_x;
+                                    bullet.y = new_bullet_y;
+                                } else if (Math.random() <= 0.35 || configuration.ricochet_mode) {
+                                    // chance to ricochet
+                                    
+                                    bullet.ricochet = bullet.ricochet ? !1 : !0;
+                                } else {
+                                    if (bullets.indexOf(bullet) > -1) {
+                                        bullets.splice(bullets.indexOf(bullet), 1);
+                                    };
+                                };
+                               
+                                // make sure bullets don't go off the map (because you can't shoot anymore if your bullet goes off the map)
+                               
+                                if (bullet.x > canvas.width - (player_size_width / 4) || bullet.y > canvas.height - (player_size_height / 4) || bullet.x < 0 || bullet.y < 0) {if (bullets.indexOf(bullet) > -1) {bullets.splice(bullets.indexOf(bullet), 1)}};
+                            };
+                            
+                            // enemy damage logic
+                    
+                            enemies.forEach((enemy) => {
+                                if (bullet.plr !== !1 && (collision(bullet.x, bullet.y, bullet.width, bullet.height, enemy.x, enemy.y, enemy.width, enemy.height) || ((bullet.type == 2 || bullet.type == 3) && collision(bullet.x - 50, bullet.y - 50, bullet.width + 100, bullet.height + 100, enemy.x, enemy.y, enemy.width, enemy.height)))) {
+                                    if (!enemy.damage_immune && (bullet.type == 2 || bullet.type == 3)) {
+                                        // create an explosion
+                                        
+                                        effects.explosions.push({x: bullet.x + Math.floor(Math.random() * 40 - 20), y: bullet.y + Math.floor(Math.random() * 40 - 20),  size: 2, radius: 0, opacity: 1, damage: 0, plr: !0});
+                                    
+                                        damages.push({x: bullet.x + Math.floor(Math.random() * 40 - 20), y: bullet.y + Math.floor(Math.random() * 40 - 20), amount: Math.floor(bullet.damage * (bullet.plr == 1 ? Object.values(multipliers).find(entry => entry.plr == 1).data.damage : Object.values(multipliers).find(entry => entry.plr == 2).data.damage)), prefix: "-", disappearing: !1});
+                                    
+                                        enemy.health -= Math.floor(bullet.damage * (bullet.plr == 1 ? Object.values(multipliers).find(entry => entry.plr == 1).data.damage : Object.values(multipliers).find(entry => entry.plr == 2).data.damage));
+                                        
+                                        // short damage immunity
+                                        
+                                        enemy.damage_immune = !0;
+                                        setTimeout(() => {enemy.damage_immune = !1}, 150);
+                                    } else if (!enemy.damage_immune) {
+                                        damages.push({x: bullet.x + Math.floor(Math.random() * 40 - 20), y: bullet.y + Math.floor(Math.random() * 40 - 20), amount: Math.floor(bullet.damage * (bullet.plr == 1 ? Object.values(multipliers).find(entry => entry.plr == 1).data.damage : Object.values(multipliers).find(entry => entry.plr == 2).data.damage)), prefix: "-", disappearing: !1});
+                                    
+                                        enemy.health -= Math.floor(bullet.damage * (bullet.plr == 1 ? Object.values(multipliers).find(entry => entry.plr == 1).data.damage : Object.values(multipliers).find(entry => entry.plr == 2).data.damage));
+                                        
+                                        // short damage immunity
+                                        
+                                        enemy.damage_immune = !0;
+                                        setTimeout(() => {enemy.damage_immune = !1}, 200);
+                                    };
+                                    
+                                    if (enemy.stage !== undefined) {
+                                        if (enemy.health <= enemy.max_health - ((enemy.stage + 1) * Math.floor(enemy.max_health / enemy.stages.length))) {
+                                            enemy.stage += 1;
+                                        };
+                                    };
+                                    
+                                    // enemy death logic
+                                    
+                                    if (enemy.health <= 0) {
+                                        // clear attack interval
+                                        
+                                        if (enemy.atk) clearInterval(enemy.atk);
+                                        
+                                        // remove enemy
+                                        
+                                        if (enemies.indexOf(enemy) > -1) enemies.splice(enemies.indexOf(enemy), 1);
+                                        
+                                        // level victory logic
+                                        
+                                        if (enemies.length <= 0) {
+                                            clearInterval(drawInterval);
+                                            clearInterval(spawnInterval);
+                                            
+                                            localStorage.setItem('campaign_level', (localStorage.getItem('campaign_level') <= campaign_level) ? (Number(localStorage.getItem('campaign_level')) + 1) : localStorage.getItem('campaign_level'));
+                                            
+                                            // reward for completing the level
+                                            
+                                            let reward = {
+                                                experience: Math.floor((Math.random() * 150 + 50) * campaign_level),
+                                                coins: Math.floor(Math.random() * 8 + 2)
+                                            };
+                                            
+                                            // calculate new values and apply them
+                                            
+                                            let new_experience = Number(localStorage.getItem('experience')) + reward.experience;
+                                            let new_coins = Number(localStorage.getItem('coins')) + reward.coins;
+                                            
+                                            let conversion = (lvl) => 25 * lvl * lvl - 25 * lvl + 300;
+                                            let attempts = 0;
+                                            
+                                            while (new_experience >= conversion(localStorage.getItem('level')) && attempts < 100) {
+                                                new_experience -= conversion(localStorage.getItem('level'));
+                                                localStorage.setItem('level', Number(localStorage.getItem('level')) + 1);
+                                                
+                                                attempts += 1;
+                                            };
+                                            
+                                            localStorage.setItem('experience', new_experience);
+                                            localStorage.setItem('coins', new_coins);
+                                            
+                                            alert("You beat Level " + String(campaign_level) + ", gaining " + String(reward.experience) + " experience and " + String(reward.coins) + " coins.");
+                                            window.location.reload();
+                                        };
+                                    };
+                                    
+                                    if (bullets.indexOf(bullet) > -1) bullets.splice(bullets.indexOf(bullet), 1);
+                                };
+                            });
+                            
+                            // bullets reduce health on impact
+                            
+                            if (!configuration.cooperative_mode && bullet.plr == 1 && (collision(bullet.x, bullet.y, bullet.width, bullet.height, player_2_x, player_2_y, player_size_width, player_size_height) || ((bullet.type == 2 || bullet.type == 3) && collision(bullet.x - 50, bullet.y - 50, bullet.width + 100, bullet.height + 100, player_2_x, player_2_y, player_size_width, player_size_height)))) {
+                                if (!block_2 && !damage_immune_2) {
+                                    if (bullet.type == 2 || bullet.type == 3) {
+                                        // create an explosion
+                                        
+                                        effects.explosions.push({x: bullet.x + Math.floor(Math.random() * 40 - 20), y: bullet.y + Math.floor(Math.random() * 40 - 20), size: 2, radius: 0, opacity: 1, damage: bullet.damage, plr: bullet.plr});
+                                    } else {
+                                        // visual damage indicator effect
+                                        
+                                        damages.push({x: bullet.x, y: bullet.y, amount: Math.floor(bullet.damage * Object.values(multipliers).find(entry => entry.plr == 1).data.damage), prefix: "-", disappearing: !1});
+                                        
+                                        health_2 -= Math.floor(bullet.damage * Object.values(multipliers).find(entry => entry.plr == 1).data.damage);
+                                        
+                                        // short damage immunity
+                                        
+                                        damage_immune_2 = !0;
+                                        setTimeout(() => {if (damage_immune_2) damage_immune_2 = !1}, 200);
+                                        
+                                        // interrupt regeneration
+                                        
+                                        regen_cooldown_2 = !0;
+                                        
+                                        // increase combo
+                                        
+                                        combos.player_1.amount += 1;
+                                        combos.player_1.timer = 250;
+                                        
+                                        if (combos.player_1.amount >= 2) {
+                                            damages.push({x: plr_x + Math.floor(Math.random() * 40 - 20), y: plr_y + Math.floor(Math.random() * 40 - 20), amount: String(combos.player_1.amount) + "!", prefix: "COMBO x", color: "#fcca3f", disappearing: !1});
+                                        };
+                                        
+                                        // increase score and reload on win
+                                        
+                                        if (health_2 <= 0) {
+                                            clearInterval(drawInterval);
+                                            clearInterval(spawnInterval);
+                                            
+                                            localStorage.setItem('score_1', Number(localStorage.getItem('score_1')) + 1);
+                                            score_tracker.textContent = "Player 1: " + String(localStorage.getItem('score_1')) + " - Player 2: " + String(localStorage.getItem('score_2'));
+                                            
+                                            let staticInterval = setInterval(() => {
+                                                // clear canvas
+                                                
+                                                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                                                
+                                                // create static effect
+                                                
+                                                let image = ctx.createImageData(canvas.width, canvas.height);
+                                                let data = image.data;
+                                                
+                                                for (let i = 0; i < data.length; i += 4) {
+                                                    // randomly black or white pixel
+                                                    
+                                                    let color = Math.random() < 0.5 ? 0 : 255;
+                                                    
+                                                    data[i] = data[i + 1] = data[i + 2] = color;
+                                                    data[i + 3] = 255;
+                                                };
+                                                
+                                                ctx.putImageData(image, 0, 0);
+                                            }, 50);
+                                                
+                                            setTimeout(() => {
+                                                clearInterval(staticInterval);
+                                            
+                                                alert("Player 1 won!");
+                                                window.location.reload();
+                                            }, 850);
+                                        };
+                                    };
+                                };
+                                if (bullets.indexOf(bullet) > -1) bullets.splice(bullets.indexOf(bullet), 1);
+                            };
+                            
+                            if (!configuration.cooperative_mode && bullet.plr == 2 && (collision(bullet.x, bullet.y, bullet.width, bullet.height, player_1_x, player_1_y, player_size_width, player_size_height) || ((bullet.type == 2 || bullet.type == 3) && collision(bullet.x - 50, bullet.y - 50, bullet.width + 100, bullet.height + 100, player_1_x, player_1_y, player_size_width, player_size_height)))) {
+                                if (!block_1 && !damage_immune_1) {
+                                    if (bullet.type == 2 || bullet.type == 3) {
+                                        // create an explosion
+                                        
+                                        effects.explosions.push({x: bullet.x, y: bullet.y, size: 2, radius: 0, opacity: 1, damage: bullet.damage, plr: bullet.plr});
+                                    } else {
+                                        // visual damage indicator effect
+                                        
+                                        damages.push({x: bullet.x + Math.floor(Math.random() * 40 - 20), y: bullet.y + Math.floor(Math.random() * 40 - 20), amount: Math.floor(bullet.damage * Object.values(multipliers).find(entry => entry.plr == 2).data.damage), prefix: "-", disappearing: !1});
+                                        
+                                        health_1 -= Math.floor(bullet.damage * Object.values(multipliers).find(entry => entry.plr == 2).data.damage);
+                                        
+                                        // short damage immunity
+                                        
+                                        damage_immune_1 = !0;
+                                        setTimeout(() => {if (damage_immune_1) damage_immune_1 = !1}, 200);
+                                        
+                                        // interrupt regeneration
+                                        
+                                        regen_cooldown_1 = !0;
+                                        
+                                        // increase combo
+                                        
+                                        combos.player_2.amount += 1;
+                                        combos.player_2.timer = 250;
+                                        
+                                        if (combos.player_2.amount >= 2) {
+                                            damages.push({x: plr_x + Math.floor(Math.random() * 40 - 20), y: plr_y + Math.floor(Math.random() * 40 - 20), amount: String(combos.player_2.amount) + "!", prefix: "COMBO x", color: "#fcca3f", disappearing: !1});
+                                        };
+                                        
+                                        // increase score and reload on win
+                                        
+                                        if (health_1 <= 0) {
+                                            clearInterval(drawInterval);
+                                            clearInterval(spawnInterval);
+                                            
+                                            localStorage.setItem('score_2', Number(localStorage.getItem('score_2')) + 1);
+                                            score_tracker.textContent = "Player 1: " + String(localStorage.getItem('score_1')) + " - Player 2: " + String(localStorage.getItem('score_2'));
+                                            
+                                            let staticInterval = setInterval(() => {
+                                                // clear canvas
+                                                
+                                                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                                                
+                                                // create static effect
+                                                
+                                                let image = ctx.createImageData(canvas.width, canvas.height);
+                                                let data = image.data;
+                                                
+                                                for (let i = 0; i < data.length; i += 4) {
+                                                    // randomly black or white pixel
+                                                    
+                                                    let color = Math.random() < 0.5 ? 0 : 255;
+                                                    
+                                                    data[i] = data[i + 1] = data[i + 2] = color;
+                                                    data[i + 3] = 255;
+                                                };
+                                                
+                                                ctx.putImageData(image, 0, 0);
+                                            }, 50);
+                                                
+                                            setTimeout(() => {
+                                                clearInterval(staticInterval);
+                                            
+                                                alert("Player 2 won!");
+                                                window.location.reload();
+                                            }, 850);
+                                        };
+                                    };
+                                };
+                                if (bullets.indexOf(bullet) > -1) bullets.splice(bullets.indexOf(bullet), 1);
+                            };
+                            
+                            if (bullet.plr === !1) {
+                                if (collision_1(bullet.x, bullet.y, bullet.width, bullet.height) || ((bullet.type == 2 || bullet.type == 3) && collision_1(bullet.x - 50, bullet.y - 50, bullet.width + 100, bullet.height + 100))) {
+                                    if (!block_1 && !damage_immune_1) {
+                                        if (bullet.type == 2 || bullet.type == 3) {
+                                            // create an explosion
+                                            
+                                            effects.explosions.push({x: bullet.x, y: bullet.y, size: 2, radius: 0, opacity: 1, damage: bullet.damage, plr: !1});
+                                        } else {
+                                            // visual damage indicator effect
+                                                        
+                                            damages.push({x: bullet.x + Math.floor(Math.random() * 40 - 20), y: bullet.y + Math.floor(Math.random() * 40 - 20), amount: Math.floor(bullet.damage), prefix: "-", disappearing: !1});
+                                            
+                                            health_1 -= Math.floor(bullet.damage);
+                                            
+                                            // short damage immunity
+                                            
+                                            damage_immune_1 = !0;
+                                            setTimeout(() => {damage_immune_1 = !1}, 300);
+                                            
+                                            // interrupt regeneration
+                                            
+                                            regen_cooldown_1 = !0;
+                                            
+                                            // reload on loss
+                                                        
+                                            if (health_1 <= 0) {
+                                                clearInterval(drawInterval);
+                                                clearInterval(spawnInterval);
+                                                
+                                                let staticInterval = setInterval(() => {
+                                                    // clear canvas
+                                                    
+                                                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                                                    
+                                                    // create static effect
+                                                    
+                                                    let image = ctx.createImageData(canvas.width, canvas.height);
+                                                    let data = image.data;
+                                                    
+                                                    for (let i = 0; i < data.length; i += 4) {
+                                                        // randomly black or white pixel
+                                                        
+                                                        let color = Math.random() <= 0.5 ? 0 : 255;
+                                                        
+                                                        data[i] = data[i + 1] = data[i + 2] = color;
+                                                        data[i + 3] = 255;
+                                                    };
+                                                    
+                                                    ctx.putImageData(image, 0, 0);
+                                                }, 50);
+                                                
+                                                setTimeout(() => {
+                                                    clearInterval(staticInterval);
+                                                    
+                                                    alert("You lost because Player 1 died!");
+                                                    window.location.reload();
+                                                }, 850);
+                                            };
+                                        };
+                                    };
+                                    
+                                    if (bullets.indexOf(bullet) > -1) bullets.splice(bullets.indexOf(bullet), 1);
+                                };
+                                
+                                if (!configuration.singleplayer_mode && collision_2(bullet.x, bullet.y, bullet.width, bullet.height) || ((bullet.type == 2 || bullet.type == 3) && collision_2(bullet.x - 50, bullet.y - 50, bullet.width + 100, bullet.height + 100))) {
+                                    if (!block_2 && !damage_immune_2) {
+                                        if (bullet.type == 2 || bullet.type == 3) {
+                                            // create an explosion
+                                            
+                                            effects.explosions.push({x: bullet.x, y: bullet.y, size: 2, radius: 0, opacity: 1, damage: bullet.damage, plr: !1});
+                                        } else {
+                                            // visual damage indicator effect
+                                                        
+                                            damages.push({x: bullet.x + Math.floor(Math.random() * 40 - 20), y: bullet.y + Math.floor(Math.random() * 40 - 20), amount: Math.floor(bullet.damage), prefix: "-", disappearing: !1});
+                                            
+                                            health_2 -= Math.floor(bullet.damage);
+                                            
+                                            // short damage immunity
+                                            
+                                            damage_immune_2 = !0;
+                                            setTimeout(() => {damage_immune_2 = !1}, 300);
+                                            
+                                            // interrupt regeneration
+                                            
+                                            regen_cooldown_2 = !0;
+                                            
+                                            // reload on loss
+                                                        
+                                            if (health_2 <= 0) {
+                                                clearInterval(drawInterval);
+                                                clearInterval(spawnInterval);
+                                                alert("You lost becase Player 2 died!");
+                                                window.location.reload();
+                                            };
+                                        };
+                                    };
+                                    
+                                    if (bullets.indexOf(bullet) > -1) bullets.splice(bullets.indexOf(bullet), 1);
+                                };
+                            };
+                        });
+                    };
+                    
+                    // bullet collision logic
+                    
+                    for (let bullet1 of bullets) {
+                        for (let bullet2 of bullets) {
+                            if (bullet1.id != bullet2.id && bullet1.plr != bullet2.plr && collision(bullet1.x, bullet1.y, bullet1.width, bullet1.height, bullet2.x, bullet2.y, bullet2.width, bullet2.height)) {
+                                if (bullets.indexOf(bullet1) > -1) bullets.splice(bullets.indexOf(bullet1), 1);
+                                if (bullets.indexOf(bullet2) > -1) bullets.splice(bullets.indexOf(bullet2), 1);
+                            };
+                        };
+                    };
+                    
+                    // explosion logic
+                                
+                    for (let explosion of effects.explosions) {
+                        let plr_x = configuration.cooperative_mode ? getClosestPlayerPosition(explosion.x, explosion.y).x : ((explosion.plr == 1) ? player_2_x : player_1_x);
+                        let plr_y = configuration.cooperative_mode ? getClosestPlayerPosition(explosion.x, explosion.y).y : ((explosion.plr == 1) ? player_2_y : player_1_y);
+                        
+                        let dx = explosion.x - plr_x;
+                        let dy = explosion.y - plr_y;
+                        
+                        let distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance <= explosion.radius * 1.5) {
+                            if (explosion.plr !== !0) {
+                                if (explosion.plr == 1) {
+                                    if (!block_2 && !damage_immune_2 && !explosion.c && !configuration.cooperative_mode) {
+                                        // visual damage indicator effect
+                                        
+                                        damages.push({x: explosion.x + Math.floor(Math.random() * 40 - 20), y: explosion.y + Math.floor(Math.random() * 40 - 20), amount: Math.floor(explosion.damage * Object.values(multipliers).find(entry => entry.plr == 1).data.damage), prefix: "-", disappearing: !1});
+                                            
+                                        health_2 -= Math.floor(explosion.damage * Object.values(multipliers).find(entry => entry.plr == 1).data.damage);
+                                        
+                                        // short damage immunity
+                                        
+                                        damage_immune_2 = !0;
+                                        setTimeout(() => {damage_immune_2 = !1}, 150);
+                                        
+                                        // interrupt regeneration
+                                        
+                                        regen_cooldown_2 = !0;
+                                        
+                                        // increase combo
+                                            
+                                        combos.player_1.amount += 1;
+                                        combos.player_1.timer = 250;
+                                        
+                                        if (combos.player_1.amount >= 2) {
+                                            damages.push({x: plr_x + Math.floor(Math.random() * 40 - 20), y: plr_y + Math.floor(Math.random() * 40 - 20), amount: String(combos.player_1.amount) + "!", prefix: "COMBO x", color: "#fcca3f", disappearing: !1});
+                                        };
+                                        
+                                        // increase score and reload on win
+                                        
+                                        if (health_2 <= 0) {
+                                            clearInterval(drawInterval);
+                                            clearInterval(spawnInterval);
+                                            localStorage.setItem('score_1', Number(localStorage.getItem('score_1')) + 1);
+                                            score_tracker.textContent = "Player 1: " + String(localStorage.getItem('score_1')) + " - Player 2: " + String(localStorage.getItem('score_2'));
+                                            alert("Player 1 won!");
+                                            window.location.reload();
+                                        };
+                                        
+                                        explosion.c = !0;
+                                    };
+                                };
+                                if (explosion.plr == 2) {
+                                    if (!block_1 && !damage_immune_1 && !explosion.c && !configuration.cooperative_mode) {
+                                        // visual damage indicator effect
+                                        
+                                        damages.push({x: explosion.x + Math.floor(Math.random() * 40 - 20), y: explosion.y + Math.floor(Math.random() * 40 - 20), amount: Math.floor(explosion.damage * Object.values(multipliers).find(entry => entry.plr == 1).data.damage), prefix: "-", disappearing: !1});
+                                            
+                                        health_1 -= Math.floor(explosion.damage * Object.values(multipliers).find(entry => entry.plr == 2).data.damage);
+                                        
+                                        // short damage immunity
+                                        
+                                        damage_immune_1 = !0;
+                                        setTimeout(() => {damage_immune_1 = !1}, 150);
+                                        
+                                        // interrupt regeneration
+                                        
+                                        regen_cooldown_1 = !0;
+                                        
+                                        // increase combo
+                                            
+                                        combos.player_2.amount += 1;
+                                        combos.player_2.timer = 250;
+                                        
+                                        if (combos.player_2.amount >= 2) {
+                                            damages.push({x: plr_x + Math.floor(Math.random() * 40 - 20), y: plr_y + Math.floor(Math.random() * 40 - 20), amount: String(combos.player_2.amount) + "!", prefix: "COMBO x", color: "#fcca3f", disappearing: !1});
+                                        };
+                                        
+                                        // increase score and reload on win
+                                        
+                                        if (health_1 <= 0) {
+                                            clearInterval(drawInterval);
+                                            clearInterval(spawnInterval);
+                                            localStorage.setItem('score_2', Number(localStorage.getItem('score_2')) + 1);
+                                            score_tracker.textContent = "Player 1: " + String(localStorage.getItem('score_1')) + " - Player 2: " + String(localStorage.getItem('score_2'));
+                                            alert("Player 2 won!");
+                                            window.location.reload();
+                                        };
+                                        
+                                        explosion.c = !0;
+                                    };
+                                };
+                                if (explosion.plr === !1 && !explosion.c) {
+                                    // visual damage indicator effect
+                                    
+                                    damages.push({x: explosion.x + Math.floor(Math.random() * 40 - 20), y: explosion.y + Math.floor(Math.random() * 40 - 20), amount: Math.floor(explosion.damage), prefix: "-", disappearing: !1});
+                                    
+                                    if (getClosestPlayerPosition(explosion.x, explosion.y).plr == 1 && (!block_1 || !damage_immune_1)) {
+                                        health_1 -= Math.floor(explosion.damage);
+                                        
+                                        // short damage immunity
+                                        
+                                        damage_immune_1 = !0;
+                                        setTimeout(() => {damage_immune_1 = !1}, 150);
+                                        
+                                        // interrupt regeneration
+                                        
+                                        regen_cooldown_1 = !0;
+                                        
+                                        // reload on loss
+                                        
+                                        if (health_1 <= 0) {
+                                            clearInterval(drawInterval);
+                                            clearInterval(spawnInterval);
+                                            alert("You lost because Player 1 died!");
+                                            window.location.reload();
+                                        };
+                                        
+                                        explosion.c = !0;
+                                    } else if (!explosion.c && (!block_2 || !damage_immune_2)) {
+                                        health_2 -= Math.floor(explosion.damage);
+                                        
+                                        // short damage immunity
+                                        
+                                        damage_immune_2 = !0;
+                                        setTimeout(() => {damage_immune_2 = !1}, 150);
+                                        
+                                        // interrupt regeneration
+                                        
+                                        regen_cooldown_2 = !0;
+                                        
+                                        // reload on loss
+                                        
+                                        if (health_1 <= 0) {
+                                            clearInterval(drawInterval);
+                                            clearInterval(spawnInterval);
+                                            alert("You lost because Player 2 died!");
+                                            window.location.reload();
+                                        };
+                                        
+                                        explosion.c = !0;
+                                    };
+                                };
+                                
+                                health_1 = Math.max(0, Math.min(health_1, max_health_1));
+                                health_2 = Math.max(0, Math.min(health_2, max_health_2));
+                            };
+                        };
+                    };
+                    
+                    // regeneration logic
+                    
+                    if (!timers.regen_1 && regen_cooldown_1) {
+                        timers.regen_1 = setTimeout(() => {regen_cooldown_1 = !1; timers.regen_1 = !1}, 8000);
+                    };
+                    
+                    if (!timers.regen_2 && regen_cooldown_2) {
+                        timers.regen_2 = setTimeout(() => {regen_cooldown_2 = !1; timers.regen_2 = !1}, 8000);
+                    };
+                    
+                    // stamina logic
+                    
+                    if (!timers.stamina_1 && stamina_cooldown_1) {
+                        timers.stamina_1 = setTimeout(() => {stamina_cooldown_1 = !1; timers.stamina_1 = !1}, 8000);
+                    };
+                    
+                    if (!timers.stamina_2 && stamina_cooldown_2) {
+                        timers.stamina_2 = setTimeout(() => {stamina_cooldown_2 = !1; timers.stamina_2 = !1}, 8000);
+                    };
+                    
+                    // combo logic
+                    
+                    Object.values(combos).forEach((player) => {
+                        if (player.timer > 0) {
+                            player.timer -= 1;
+                            if (player.timer == 0) {
+                                player.amount = 0;
+                            };
+                        } else if (player.timer < 0) {
+                            player.timer = 0;
+                        };
+                    });
+                         
+                    // draw obstacles
+                         
+                    obstacles.forEach((obstacle) => {
+                        ctx.fillStyle = (obstacle.color == background_color) ? background_color : "#000000";
+                        ctx.fillRect(
+                            obstacle.x,
+                            obstacle.y,
+                            obstacle.width,
+                            obstacle.height
+                        );
+                        
+                        ctx.fillStyle = obstacle.color;
+                        ctx.fillRect(
+                            obstacle.x + 2,
+                            obstacle.y + 2,
+                            obstacle.width - 4,
+                            obstacle.height - 4
+                        );
+                    });
+                    
+                    // draw bullets
+                    
+                    if (bullets.length > 0) {
+                        for (let bullet of bullets) {
+                            ctx.fillStyle = "#000000";
+                            ctx.fillRect(
+                                bullet.x,
+                                bullet.y,
+                                bullet.width,
+                                bullet.height
+                            );
+                            
+                            ctx.fillStyle = bullet.color;
+                            ctx.fillRect(
+                                bullet.x + 2,
+                                bullet.y + 2,
+                                bullet.width - 4,
+                                bullet.height - 4
+                            );
+                        };
+                    };
+                         
+                    // draw players
+                         
+                    ctx.fillStyle = "#000000";
+                    ctx.fillRect(
+                        player_1_x,
+                        player_1_y,
+                        player_size_width,
+                        player_size_height
+                    );
+                    
+                    ctx.fillStyle = damage_immune_1 ? "#fa482d" : (block_1 ? "#ffffff" : "#4dde2a");
+                    ctx.fillRect(
+                        player_1_x + 2,
+                        player_1_y + 2,
+                        player_size_width - 4,
+                        player_size_height - 4
+                    );
+                    
+                    if (!configuration.singleplayer_mode) {
+                        ctx.fillStyle = "#000000";
+                        ctx.fillRect(
+                            player_2_x,
+                            player_2_y,
+                            player_size_width,
+                            player_size_height
+                        );
+                             
+                        ctx.fillStyle = damage_immune_2 ? "#fa482d" : (block_2 ? "#ffffff" : "#fcba03");
+                        ctx.fillRect(
+                            player_2_x + 2,
+                            player_2_y + 2,
+                            player_size_width - 4,
+                            player_size_height - 4
+                        );
+                    };
+                    
+                    // draw collectibles
+                    
+                    collectibles.forEach((collectible) => {
+                        ctx.fillStyle = "#000000";
+                        ctx.fillRect(
+                            collectible.x,
+                            collectible.y,
+                            collectible.width,
+                            collectible.height
+                        );
+                        
+                        ctx.fillStyle = "#ff9166";
+                        ctx.fillRect(
+                            collectible.x + 2,
+                            collectible.y + 2,
+                            collectible.width - 4,
+                            collectible.height - 4
+                        );
+                    });
+                    
+                    // draw visual effects
+                    
+                    effects.explosions.forEach((explosion) => {
+                        // create a circle
+                        
+                        ctx.beginPath();
+                        ctx.fillStyle = "#fc7b2b";
+                        ctx.globalAlpha = explosion.opacity;
+                        ctx.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        ctx.globalAlpha = 1;
+                        
+                        // expand the circle
+                        
+                        explosion.radius += explosion.size;
+                        
+                        if (!explosion.a) {
+                            // wait 350 milliseconds before the explosion fades
+                            
+                            explosion.a = !0;
+                            setTimeout(() => {explosion.b = !0}, 350);
+                        };
+                        if (explosion.b) {
+                            // explosion fading
+                            
+                            explosion.opacity -= 0.1;
+                        };
+                        if (explosion.opacity <= 0) {
+                            // destroy explosion once done fading
+                            
+                            effects.explosions.splice(effects.explosions.indexOf(explosion), 1);
+                        };
+                    });
+                    
+                    effects.particles.forEach((particle) => {
+                        // create particle
+                        
+                        ctx.fillStyle = particle.color;
+                        ctx.globalAlpha = particle.opacity;
+                        ctx.fillRect(particle.x, particle.y, 4, 4);
+                        
+                        ctx.globalAlpha = 1;
+                        
+                        // move particle
+                        
+                        particle.x += particle.dx;
+                        particle.y += particle.dy;
+                        
+                        particle.life--;
+                        
+                        if (!particle.a) {
+                            // wait before fading
+                            
+                            particle.a = !0;
+                            setTimeout(() => {particle.b = !0}, 350);
+                        };
+                        
+                        if (particle.b) {
+                            // fade particle
+                            
+                            particle.opacity -= 0.05;
+                        };
+                        
+                        if (particle.life <= 0 || particle.opacity <= 0) {
+                            // destroy particle
+                            
+                            effects.particles.splice(effects.particles.indexOf(particle), 1);
+                        };
+                    });
+                    
+                    // draw enemies
+                    
+                    enemies.forEach((enemy) => {
+                        ctx.fillStyle = "#000000";
+                        ctx.fillRect(
+                            enemy.x,
+                            enemy.y,
+                            enemy.width,
+                            enemy.height
+                        );
+                        
+                        ctx.fillStyle = enemy.damage_immune ? "#fa482d" : enemy.color;
+                        ctx.fillRect(
+                            enemy.x + 2,
+                            enemy.y + 2,
+                            enemy.width - 4,
+                            enemy.height - 4
+                        );
+                        
+                        // draw enemy health bars
+                        
+                        ctx.fillStyle = "#000000";
+                        ctx.fillRect(
+                            enemy.x - 4,
+                            enemy.y - 18,
+                            enemy.width + 8,
+                            10
+                        );
+                        
+                        ctx.fillStyle = "#7ff739";
+                        ctx.fillRect(
+                            enemy.x - 2,
+                            enemy.y - 16,
+                            Math.ceil((enemy.width + 4) * Math.abs(enemy.health / enemy.max_health)),
+                            6
+                        );
+                    });
+                    
+                    // tween health bars
+                    
+                    displayed_health_1 += (health_1 - displayed_health_1) * 0.05;
+                    displayed_health_2 += (health_2 - displayed_health_2) * 0.05;
+                    
+                    ghost_health_1 += (health_1 - ghost_health_1) * 0.01;
+                    ghost_health_2 += (health_2 - ghost_health_2) * 0.01;
+                    
+                    // draw health bars
+                    
+                    ctx.fillStyle = "#000000";
+                    ctx.fillRect(
+                        player_1_x - 4,
+                        player_1_y - 18,
+                        player_size_width + 8,
+                        10
+                    );
+                    
+                    ctx.fillStyle = "#f4f739";
+                    ctx.fillRect(
+                        player_1_x - 2,
+                        player_1_y - 16,
+                        Math.ceil((player_size_width + 4) * Math.abs(ghost_health_1 / max_health_1)),
+                        6
+                    );
+                    
+                    ctx.fillStyle = "#7ff739";
+                    ctx.fillRect(
+                        player_1_x - 2,
+                        player_1_y - 16,
+                        Math.ceil((player_size_width + 4) * Math.abs(displayed_health_1 / max_health_1)),
+                        6
+                    );
+                    
+                    if (!configuration.singleplayer_mode) {
+                        ctx.beginPath();
+                        ctx.fillStyle = "#000000";
+                        ctx.fillRect(
+                            player_2_x - 4,
+                            player_2_y - 18,
+                            player_size_width + 8,
+                            10
+                        );
+                    
+                        ctx.fillStyle = "#f4f739";
+                        ctx.fillRect(
+                            player_2_x - 2,
+                            player_2_y - 16,
+                            Math.ceil((player_size_width + 4) * Math.abs(ghost_health_2 / max_health_2)),
+                            6
+                        );
+                        
+                        ctx.fillStyle = "#7ff739";
+                        ctx.fillRect(
+                            player_2_x - 2,
+                            player_2_y - 16,
+                            Math.ceil((player_size_width + 4) * Math.abs(displayed_health_2 / max_health_2)),
+                            6
+                        );
+                    };
+                    
+                    // tween stamina bars
+                    
+                    displayed_stamina_1 += (stamina_1 - displayed_stamina_1) * 0.05;
+                    displayed_stamina_2 += (stamina_2 - displayed_stamina_2) * 0.05;
+                    
+                    // draw stamina bars
+                    
+                    ctx.fillStyle = "#000000";
+                    ctx.fillRect(
+                        player_1_x - 4,
+                        player_1_y - 32,
+                        player_size_width + 8,
+                        10
+                    );
+                    
+                    ctx.fillStyle = "#63cbff";
+                    ctx.fillRect(
+                        player_1_x - 2,
+                        player_1_y - 30,
+                        Math.ceil((player_size_width + 4) * Math.abs(displayed_stamina_1 / max_stamina_1)),
+                        6
+                    );
+                    
+                    if (!configuration.singleplayer_mode) {
+                        ctx.fillStyle = "#000000";
+                        ctx.fillRect(
+                            player_2_x - 4,
+                            player_2_y - 32,
+                            player_size_width + 8,
+                            10
+                        );
+                        
+                        ctx.fillStyle = "#63cbff";
+                        ctx.fillRect(
+                            player_2_x - 2,
+                            player_2_y - 30,
+                            Math.ceil((player_size_width + 4) * Math.abs(displayed_stamina_2 / max_stamina_2)),
+                            6
+                        );
+                    };
+                    
+                    // draw damage indicators
+                    
+                    damages.forEach((damage) => {
+                        if (!damage.opacity) {
+                            damage.opacity = 1;
+                        };
+                        
+                        ctx.globalAlpha = damage.opacity;
+                        ctx.fillStyle = "#000000";
+                        ctx.font = "bold 24px Roboto";
+                        ctx.lineWidth = 2;
+                        ctx.strokeText(damage.prefix + String(damage.amount), damage.x, damage.y);
+                        
+                        ctx.fillStyle = damage.color || ((damage.prefix == "-") ? `rgb(220, 30, 20)` : `rgb(100, 245, 10)`);
+                        ctx.fillText(damage.prefix + String(damage.amount), damage.x, damage.y);
+                        
+                        ctx.globalAlpha = 1;
+                        
+                        if (!damage.disappearing && !damage.a) {
+                            setTimeout(() => {damage.disappearing = !0}, 350);
+                            damage.a = !0;
+                        };
+                        
+                        if (damage.disappearing) {
+                            damage.y -= 3;
+                            damage.opacity = Math.max(damage.opacity - 0.05, 0);
+                            if (damage.opacity <= 0) {
+                                damages.splice(damages.indexOf(damage), 1);
+                            };
+                        };
+                    });
+                };
+                
+                // shop logic
+                
+                $("#shop_button").addEventListener("click", () => {
+                    $("#start_menu").style.display = "none";
+                    
+                    loadShop();
+                });
+                
+                // settings logic
+                
+                $("#settings_button").addEventListener("click", () => {
+                    $("#start_menu").style.display = "none";
+                    
+                    let settings_menu = createElement("div");
+                    let header_1 = createElement("h2", {textContent: "Settings"});
+                    
+                    let input = createElement("input");
+                    let photosensitive_epilepsy_button = createElement("button", {textContent: "Photosensitive Epilepsy Mode (OFF)"});
+                    let code_input = createElement("input");
+                    let code_submit = createElement("button", {textContent: "Submit"});
+                    let back_button = createElement("button", {textContent: "Back"});
+                    
+                    input.type = "color";
+                    code_input.type = "text";
+                    
+                    code_input.placeholder = "Input codes here...";
+                    
+                    input.value = "#caf7b5";
+                    
+                    input.style.width = "60px";
+                    input.style.height = "60px";
+                    
+                    input.on("change", () => {
+                        original_background_color = input.value;
+                        background_color = original_background_color;
+                    });
+                    
+                    code_submit.on("click", () => {
+                        try {
+                            if (Object.keys(codes).indexOf(code_input.value) > -1) {
+                                let redeemed_codes = JSON.parse(localStorage.getItem("codes_redeemed") || "[]");
+                                
+                                if (!redeemed_codes.includes(code_input.value)) {
+                                    let rewards = codes[code_input.value].rewards;
+                                    let reward_text = "Code successfully redeemed!\n";
+                                    
+                                    if (rewards.coins) {
+                                        localStorage.setItem("coins", Number(localStorage.getItem("coins")) + rewards.coins);
+                                        reward_text += `\n+${String(rewards.coins)} Coins`;
+                                    };
+                                    if (rewards.experience) {
+                                        localStorage.setItem("experience", Number(localStorage.getItem("experience")) + rewards.experience);
+                                        convertExperience();
+                                        reward_text += `\n+${String(rewards.experience)} Experience`;
+                                    };
+                                    
+                                    level_text.textContent = "Level " + localStorage.getItem('level') + " (" + localStorage.getItem('experience') + "/" + ((lvl) => 25 * lvl * lvl - 25 * lvl + 300)(localStorage.getItem('level')) + " Experience)";
+                                    coin_text.textContent = localStorage.getItem('coins') + " Coins";
+                                    
+                                    redeemed_codes.push(code_input.value);
+                                    
+                                    localStorage.setItem("codes_redeemed", JSON.stringify(redeemed_codes));
+                                    
+                                    alert(reward_text);
+                                } else {
+                                    alert("Code already redeemed!")
+                                };
+                            } else {
+                                alert("Invalid or expired code!");
+                            };
+                        } catch (error) {
+                            alert("Invalid or expired code: " + error);
+                        };
+                    });
+                    
+                    photosensitive_epilepsy_button.on("click", () => {
+                        configuration.photosensitive_epilepsy_mode = configuration.photosensitive_epilepsy_mode ? !1 : !0;
+                        
+                        photosensitive_epilepsy_button.textContent = configuration.photosensitive_epilepsy_mode ? "Photosensitive Epilepsy Mode (ON)" : "Photosensitive Epilepsy Mode (OFF)";
+                    });
+                    
+                    back_button.on("click", () => {
+                        $("#start_menu").style.display = "block";
+                        
+                        settings_menu.remove();
+                    });
+                    
+                    settings_menu.appendChild(header_1);
+                    settings_menu.appendChild(input);
+                    settings_menu.appendChild(createElement("br"));
+                    settings_menu.appendChild(photosensitive_epilepsy_button);
+                    settings_menu.appendChild(createElement("br"));
+                    settings_menu.appendChild(code_input);
+                    settings_menu.appendChild(code_submit);
+                    settings_menu.appendChild(createElement("br"));
+                    settings_menu.appendChild(back_button);
+                    document.body.appendChild(settings_menu);
+                });
+                
+                // start menu logic
+                
+                $("#play_button").addEventListener("click", () => {
+                    let gamemode_selection = document.createElement("div");
+                    
+                    let header_1 = createElement("h2", {textContent: "Gamemode Selection"});
+                    
+                    let campaign_button = createElement("button", {textContent: "Campaign"});
+                    let competitive_button = createElement("button", {textContent: "Competitive"});
+    
+                    // gamemode selection logic
+                    
+                    campaign_button.addEventListener("click", () => {
+                        // level selection logic
+                        
+                        let level_selection = createElement("div");
+                        let header_2 = createElement("h2", {textContent: "Level Selection"});
+                        
+                        let singleplayer_button = createElement("button", {textContent: "Singleplayer Mode (OFF)"});
+                        
+                        // toggle singleplayer mode on click
+                                
+                        singleplayer_button.addEventListener("click", () => {
+                            configuration.singleplayer_mode = configuration.singleplayer_mode ? !1 : !0;
+                            
+                            singleplayer_button.textContent = configuration.singleplayer_mode ? "Singleplayer Mode (ON)" : "Singleplayer Mode (OFF)";
+                        });
+                        
+                        level_selection.appendChild(header_2);
+                        
+                        // toggle cooperative mode
+                                        
+                        configuration.cooperative_mode = !0;
+                        
+                        for (let i = 0; i < levels.length; i++) {
+                            let level = levels[i];
+                            let level_button = document.createElement("button");
+                            
+                            level_button.textContent = "Level " + String(i + 1) + (level.tags.includes("BOSS") ? " (BOSS)" : "");
+                            
+                            level_button.addEventListener("click", () => {
+                                level_selection.remove();
+                                
+                                obstacles = level.map;
+                                
+                                let enemies_to_spawn = level.enemies;
+                                
+                                for (let j = 0; j < enemies_to_spawn.length; j++) {
+                                    let enemy = enemies_to_spawn[j];
+                                    enemies.push({...enemy_types[enemy], id: enemy.id})
+                                }
+                                
+                                campaign_level = i + 1;
+                                
+                                // class selection logic
+                                
+                                let selection_menu = document.createElement("div");
+                                
+                                let text = document.createElement("h2");
+                                
+                                let player_1_selection_button = document.createElement("button");
+                                let player_2_selection_button = document.createElement("button");
+                                
+                                let next_button = document.createElement("button");
+                                
+                                text.textContent = "Class Selection";
+                                
+                                player_1_selection_button.textContent = "Player 1: " + Object.keys(classes)[player_class_1 - 1];
+                                player_2_selection_button.textContent = "Player 2: " + Object.keys(classes)[player_class_2 - 1];
+                                
+                                next_button.textContent = "Next";
+                                
+                                // toggle between classes on click
+                                
+                                player_1_selection_button.addEventListener("click", () => {
+                                    player_class_1 += 1;
+                                    if (player_class_1 > Math.min(localStorage.getItem("unlocked_classes"), Object.keys(classes).length)) {
+                                        player_class_1 = 1;
+                                    };
+                                    player_1_selection_button.textContent = "Player 1: " + Object.keys(classes)[player_class_1 - 1];
+                                });
+                                
+                                player_2_selection_button.addEventListener("click", () => {
+                                    player_class_2 += 1;
+                                    if (player_class_2 > Math.min(localStorage.getItem("unlocked_classes"), Object.keys(classes).length)) {
+                                        player_class_2 = 1;
+                                    };
+                                    player_2_selection_button.textContent = "Player 2: " + Object.keys(classes)[player_class_2 - 1];
+                                });
+                                
+                                // button to start the game
+                                
+                                next_button.addEventListener("click", () => {
+                                    health_1 = Object.values(classes).find(entry => entry.id == player_class_1).health;
+                                    health_2 = Object.values(classes).find(entry => entry.id == player_class_2).health;
+                                    
+                                    max_health_1 = health_1;
+                                    max_health_2 = health_2;
+                                    
+                                    displayed_health_1 = health_1;
+                                    displayed_health_2 = health_2;
+                                    
+                                    ghost_health_1 = displayed_health_1;
+                                    ghost_health_2 = displayed_health_2;
+                                    
+                                    canvas.style.display = "block";
+                                    score_tracker.style.display = "block";
+                                    
+                                    drawInterval = setInterval(draw, 20);
+                                    blinkInterval = setInterval(() => {
+                                        obstacles.forEach((obstacle) => {
+                                            if (obstacle.blinking) {
+                                                obstacle.color = (obstacle.color == "#268cc7") ? background_color : "#268cc7";
+                                                obstacle.passthrough = (obstacle.passthrough.includes(1)) ? [] : [1, 2];
+                                            };
+                                        });
+                                    }, 1850);
+                                    spawnInterval = setInterval(() => {
+                                        if (collectibles.length < 5) {
+                                            collectibles.push({x: Math.floor(Math.random() * (canvas.width - 20)), y: Math.floor(Math.random() * (canvas.height - 20)), width: 20, height: 20});
+                                        };
+                                    }, 6500);
+                                    regenInterval = setInterval(() => {
+                                        if (!regen_cooldown_1 && health_1 < max_health_1) {
+                                            damages.push({x: player_1_x + Math.floor(Math.random() * 40 - 20), y: player_1_y + Math.floor(Math.random() * 40 - 20), amount: Math.floor(max_health_1 / 20), prefix: "+", disappearing: !1});
+                                            
+                                            health_1 = Math.min(health_1 + Math.floor(max_health_1 / 20), max_health_1);
+                                        };
+                                        
+                                        if (!regen_cooldown_2 && health_2 < max_health_2) {
+                                            damages.push({x: player_2_x + Math.floor(Math.random() * 40 - 20), y: player_2_y + Math.floor(Math.random() * 40 - 20), amount: Math.floor(max_health_2 / 20), prefix: "+", disappearing: !1});
+                                            
+                                            health_2 = Math.min(health_2 + Math.floor(max_health_2 / 20), max_health_2);
+                                        };
+                                    }, 850);
+                                    staminaInterval = setInterval(() => {
+                                        if (!stamina_cooldown_1 && stamina_1 < max_stamina_1) {
+                                            stamina_1 = Math.min(stamina_1 + Math.floor(max_stamina_1 / 10), max_stamina_1);
+                                        };
+                                        
+                                        if (!stamina_cooldown_2 && stamina_2 < max_stamina_2) {
+                                            stamina_2 = Math.min(stamina_2 + Math.floor(max_stamina_2 / 10), max_stamina_2);
+                                        };
+                                    }, 850);
+                                    
+                                    if (i == 4 || i == 9 || i == 14 || i == 19) {
+                                        // change background color for dramatic effect
+                                        
+                                        setInterval(() => {
+                                            background_color = (background_color == "#de4733") ? original_background_color : "#de4733";
+                                        }, configuration.photosensitive_epilepsy_mode ? 20 : 350);
+                                        
+                                        setInterval(() => {
+                                            effects.explosions.push({x: Math.floor(Math.random() * 400 + 50), y: Math.floor(Math.random() * 400 + 50),  size: 2, radius: 0, opacity: 1, damage: 15, plr: !1});
+                                        }, 1350);
+                                    };
+                                    selection_menu.remove();
+                                });
+                                
+                                // appending
+                                
+                                selection_menu.appendChild(text);
+                                selection_menu.appendChild(player_1_selection_button);
+                                selection_menu.appendChild(player_2_selection_button);
+                                selection_menu.appendChild(createElement("br"));
+                                selection_menu.appendChild(next_button);
+                                document.body.appendChild(selection_menu);
+                            });
+                            
+                            if (localStorage.getItem("campaign_level") < (i + 1)) {
+                                level_button.disabled = !0;
+                            };
+                            
+                            level_selection.appendChild(level_button);
+                            level_selection.appendChild(createElement("br"));
+                            level_selection.appendChild(singleplayer_button);
+                        };
+                        
+                        document.body.appendChild(level_selection);
+                        gamemode_selection.remove();
+                    });
+                    
+                    competitive_button.addEventListener("click", () => {
+                        // map selection logic
+                        
+                        let map_selection = document.createElement("div");
+                        let header_2 = document.createElement("h2");
+                        
+                        header_2.textContent = "Map Selection";
+                        
+                        map_selection.appendChild(header_2);
+                        
+                        displayed_maps.forEach((map) => {
+                            let map_selection_button = document.createElement("button");
+                            
+                            map_selection_button.textContent = map;
+                            map_selection_button.addEventListener("click", () => {
+                                map_selection.remove();
+                                
+                                selected_map = map;
+                                obstacles = maps[map];
+                                
+                                // class selection logic
+                                
+                                let selection_menu = document.createElement("div");
+                                
+                                let text = document.createElement("h2");
+                                
+                                let player_1_selection_button = document.createElement("button");
+                                let player_2_selection_button = document.createElement("button");
+                                
+                                let next_button = document.createElement("button");
+                                
+                                text.textContent = "Class Selection";
+                                
+                                player_1_selection_button.textContent = "Player 1: " + Object.keys(classes)[player_class_1 - 1];
+                                player_2_selection_button.textContent = "Player 2: " + Object.keys(classes)[player_class_2 - 1];
+                                
+                                next_button.textContent = "Next";
+                                
+                                // toggle between classes on click
+                                
+                                player_1_selection_button.addEventListener("click", () => {
+                                    player_class_1 += 1;
+                                    if (player_class_1 > Math.min(localStorage.getItem("unlocked_classes"), Object.keys(classes).length)) {
+                                        player_class_1 = 1;
+                                    };
+                                    player_1_selection_button.textContent = "Player 1: " + Object.keys(classes)[player_class_1 - 1];
+                                });
+                                
+                                player_2_selection_button.addEventListener("click", () => {
+                                    player_class_2 += 1;
+                                    if (player_class_2 > Math.min(localStorage.getItem("unlocked_classes"), Object.keys(classes).length)) {
+                                        player_class_2 = 1;
+                                    };
+                                    player_2_selection_button.textContent = "Player 2: " + Object.keys(classes)[player_class_2 - 1];
+                                });
+                                
+                                // button to start the game
+                                
+                                next_button.addEventListener("click", () => {
+                                    health_1 = Object.values(classes).find(entry => entry.id == player_class_1).health;
+                                    health_2 = Object.values(classes).find(entry => entry.id == player_class_2).health;
+                                    
+                                    max_health_1 = health_1;
+                                    max_health_2 = health_2;
+                                    
+                                    displayed_health_1 = health_1;
+                                    displayed_health_2 = health_2;
+                                    
+                                    ghost_health_1 = displayed_health_1;
+                                    ghost_health_2 = displayed_health_2;
+                                    
+                                    canvas.style.display = "block";
+                                    score_tracker.style.display = "block";
+                                    
+                                    drawInterval = setInterval(draw, 20);
+                                    blinkInterval = setInterval(() => {
+                                        obstacles.forEach((obstacle) => {
+                                            if (obstacle.blinking) {
+                                                obstacle.color = (obstacle.color == "#268cc7") ? background_color : "#268cc7";
+                                                obstacle.passthrough = (obstacle.passthrough.includes(1)) ? [] : [1, 2];
+                                            };
+                                        });
+                                    }, 1850);
+                                    spawnInterval = setInterval(() => {
+                                        if (collectibles.length < 5) {
+                                            collectibles.push({x: Math.floor(Math.random() * (canvas.width - 20)), y: Math.floor(Math.random() * (canvas.height - 20)), width: 20, height: 20});
+                                        };
+                                    }, 6500);
+                                    regenInterval = setInterval(() => {
+                                        if (!regen_cooldown_1 && health_1 < max_health_1) {
+                                            damages.push({x: player_1_x + Math.floor(Math.random() * 40 - 20), y: player_1_y + Math.floor(Math.random() * 40 - 20), amount: Math.floor(max_health_1 / 20), prefix: "+", disappearing: !1});
+                                            
+                                            health_1 = Math.min(health_1 + Math.floor(max_health_1 / 20), max_health_1);
+                                        };
+                                        
+                                        if (!regen_cooldown_2 && health_2 < max_health_2) {
+                                            damages.push({x: player_2_x + Math.floor(Math.random() * 40 - 20), y: player_2_y + Math.floor(Math.random() * 40 - 20), amount: Math.floor(max_health_2 / 20), prefix: "+", disappearing: !1});
+                                            
+                                            health_2 = Math.min(health_2 + Math.floor(max_health_2 / 20), max_health_2);
+                                        };
+                                    }, 850);
+                                    staminaInterval = setInterval(() => {
+                                        if (!stamina_cooldown_1 && stamina_1 < max_stamina_1) {
+                                            stamina_1 = Math.min(stamina_1 + Math.floor(max_stamina_1 / 10), max_stamina_1);
+                                        };
+                                        
+                                        if (!stamina_cooldown_2 && stamina_2 < max_stamina_2) {
+                                            stamina_2 = Math.min(stamina_2 + Math.floor(max_stamina_2 / 10), max_stamina_2);
+                                        };
+                                    }, 850);
+                                    selection_menu.remove();
+                                });
+                                
+                                // appending
+                                
+                                selection_menu.appendChild(text);
+                                selection_menu.appendChild(player_1_selection_button);
+                                selection_menu.appendChild(player_2_selection_button);
+                                selection_menu.appendChild(createElement("br"));
+                                selection_menu.appendChild(next_button);
+                                document.body.appendChild(selection_menu);
+                            });
+                            
+                            map_selection.appendChild(map_selection_button);
+                        });
+                        
+                        document.body.appendChild(map_selection);
+                        gamemode_selection.remove();
+                    });
+                    
+                    gamemode_selection.appendChild(header_1);
+                    gamemode_selection.appendChild(campaign_button);
+                    gamemode_selection.appendChild(competitive_button);
+                    document.body.appendChild(gamemode_selection);
+                    
+                    $("#start_menu").remove();
+                });
+                  
+                // input handling
+                  
+                document.body.addEventListener("keydown", keyDownHandler);
+                document.body.addEventListener("keyup", keyUpHandler);
+            };
+            
+            document.addEventListener("DOMContentLoaded", init);
+        </script>
+    </head>
+    <body>
+        <span style="cursor: pointer; font-size: 32px;" onclick="toggle()">&#9776;</span>
+        <div class="sidenav">
+            <a href="javascript:void(0)" class="close_button" onclick="toggle()">&times;</a><br>
+            <a href="home.html" class="navigation_links">Home</a><br>
+            <a href="showcase.html" class="navigation_links">Showcase</a><br>
+            <a href="click.html" class="navigation_links">Useless Clicker</a><br>
+            <a style="color: #c2c2c2;" href="game.html" class="navigation_links">Shooting Game</a><br>
+        </div>
+        <noscript>Unfortunately, your browser does not support JavaScript! Due to this, many features will not be accessible.</noscript>
+        <h1>My Homepage</h1>
+        <div id="start_menu">
+            <h2>Shooting Game</h2>
+            <button id="play_button">Play</button>
+            <button id="shop_button" disabled>Nope</button>
+            <button id="inventory_button" disabled>Nope</button>
+            <button id="settings_button">Settings</button>
+            <hr>
+            <div id="statistics">
+                <h2>Statistics</h2>
+                <p id="level_text">Loading Levels...</p>
+                <p id="coin_text">Loading Coins...</p>
+            </div>
+            <hr>
+            <div id="save_menu">
+                <h2>Save Menu</h2>
+                <input id="save_input" placeholder="Input your save code here..."><br>
+                <button style="width: 80px; height: 32px; font-size: 14px;" onclick="importData();">Import</button>
+                <button style="width: 80px; height: 32px; font-size: 14px;" onclick="saveData();">Save</button>
+                <button style="width: 80px; height: 32px; font-size: 14px;" onclick="if (confirm('Are you sure you want to wipe ALL data? \(WARNING: If you do not have a save code, your data will be permanently lost.\)')) {localStorage.clear(); window.location.reload()};">Data Wipe</button>
+            </div>
+            <hr>
+            <div id="leaderboard">
+                <h2>Leaderboard</h2>
+                <table>
+                    <tr>
+                        <th>Name</th>
+                        <th>Level</th>
+                        <th>Coins</th>
+                    </tr>
+                    <tr>
+                        <td>Hanyang Zhou</td>
+                        <td>1001</td>
+                        <td>140121</td>
+                    </tr>
+                </table>
+            </div>
+            <hr>
+            <div id="encoding_tool">
+                <h2>Encoding Tool</h2>
+                <input id="encode_input" placeholder="Input encoded or decoded text here..."><br>
+                <button style="width: 80px; height: 32px; font-size: 14px;" onclick="encodeText();">Encode</button>
+                <button style="width: 80px; height: 32px; font-size: 14px;" onclick="decodeText();">Decode</button>
+            </div>
+        </div>
+        <p style="display: none;" id="score_tracker"></p>
+        <canvas style="display: none; border: 5px solid #000000; border-radius: 12px;" id="canvas" width=500 height=500>
+    </body>
+</html>
